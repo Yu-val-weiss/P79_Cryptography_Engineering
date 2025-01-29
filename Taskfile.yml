@@ -19,3 +19,15 @@ tasks:
       - sh: ls {{.FOLDER}}/*.pdf
         msg: "Lab report not present, add before zipping."
     silent: false
+
+  docker-*:
+    desc: "Check Docker works."
+    vars:
+      FOLDER: "lab{{index .MATCH 0}}"
+    dir: "{{.FOLDER}}"
+    cmds:
+      - cp ../Dockerfile .
+      - defer: rm -f Dockerfile
+      - cp ../run.sh .
+      - defer: rm -f ./run.sh
+      - ./run.sh
