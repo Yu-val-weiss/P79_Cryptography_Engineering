@@ -9,6 +9,8 @@ dependencies = [
     "lab1",
     "lab2",
     "lab3",
+    "mypy>=1.14.1",
+    "mypy-extensions>=1.0.0",
     "pynacl>=1.5.0",
 ]
 
