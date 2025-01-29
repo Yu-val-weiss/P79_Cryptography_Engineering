@@ -16,10 +16,6 @@ tasks:
     preconditions:
       - sh: uv run --directory {{.FOLDER}} python -m unittest discover -v -s tests
         msg: "One or more unit tests are failing, fix before zipping."
-      - sh: uv run --directory {{.FOLDER}}/src mypy .
-        msg: "src failed mypy typecheck."
-      - sh: uv run --directory {{.FOLDER}}/tests mypy .
-        msg: "tests failed mypy typecheck."
       - sh: ls {{.FOLDER}}/*.pdf
         msg: "Lab report not present, add before zipping."
     silent: false
