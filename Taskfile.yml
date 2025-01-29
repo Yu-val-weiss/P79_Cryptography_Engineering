@@ -31,3 +31,12 @@ tasks:
       - cp ../run.sh .
       - defer: rm -f ./run.sh
       - ./run.sh
+
+  mypy-*:
+    desc: "Check mypy."
+    vars:
+      FOLDER: "lab{{index .MATCH 0}}"
+    dir: "{{.FOLDER}}"
+    cmds:
+      - uv run mypy src
+      - uv run mypy tests
