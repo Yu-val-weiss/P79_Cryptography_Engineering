@@ -8,4 +8,4 @@ ADD . .
 # Install package dependencies
 RUN uv sync
 
-ENTRYPOINT ["uv", "run", "python", "-m", "unittest", "discover", "-v", "-s", "tests"]
+ENTRYPOINT ["uv", "run", "--directory", "src", "python", "-m", "unittest", "discover", "-v", "-s", "tests"]
