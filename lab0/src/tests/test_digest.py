@@ -2,7 +2,7 @@
 
 import unittest
 
-from src.lab0.digest import Digest, DigestAlgorithm
+from lab0.digest import Digest, DigestAlgorithm
 
 
 class TestDigest(unittest.TestCase):
