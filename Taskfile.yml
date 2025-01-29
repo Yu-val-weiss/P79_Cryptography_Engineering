@@ -14,8 +14,10 @@ tasks:
       - defer: rm -f ./run.sh
       - zip -r ../zips/{{.FOLDER}}.zip $(git ls-files) $(git ls-files --others --exclude-standard)
     preconditions:
-      - sh: cd {{.FOLDER}} && uv run python -m unittest discover -v -s tests
-        msg: "One or more unit tests are failing"
+      - sh: uv run --directory {{.FOLDER}} python -m unittest discover -v -s tests
+        msg: "One or more unit tests are failing, fix before zipping."
+      - sh: ls {{.FOLDER}}/*.pdf
+        msg: "Lab report not present, add before zipping."
     silent: false
   
   mkdir_zips:
