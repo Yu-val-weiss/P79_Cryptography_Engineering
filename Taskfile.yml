@@ -14,8 +14,10 @@ tasks:
       - defer: rm -f ./run.sh
       - zip -r ../zips/{{.FOLDER}}.zip $(git ls-files) $(git ls-files --others --exclude-standard)
     preconditions:
-      - sh: uv run --directory {{.FOLDER}} python -m unittest discover -v -s tests
+      - sh: uv run python -m unittest discover -v -s tests
         msg: "One or more unit tests are failing, fix before zipping."
+      - sh: uv run mypy src
+        msg: "Mypy is failing."
       - sh: ls {{.FOLDER}}/*.pdf
         msg: "Lab report not present, add before zipping."
     silent: false
@@ -33,11 +35,11 @@ tasks:
       - ./run.sh
 
   mypy-*:
-    desc: "Check mypy."
+    desc: "Check mypy for src."
     vars:
       FOLDER: "lab{{index .MATCH 0}}"
     cmds:
-      - uv run mypy {{.FOLDER}} --no-explicit-package-bases --no-namespace-packages
+      - uv run mypy {{.FOLDER}}/src
 
   test-*:
     desc: "Test the folder."
