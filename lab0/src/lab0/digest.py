@@ -1,6 +1,6 @@
 from enum import Enum
 
-import nacl.hash
+from nacl import encoding, hash
 
 #
 # This project contains an implementation of a Digest class with some
@@ -22,7 +22,7 @@ class Digest:
 
     def __init__(
         self,
-        algorithm: str,
+        algorithm: DigestAlgorithm,
         output_len_bits: int = DEFAULT_OUTPUT_LEN_BITS,
     ):
         """
@@ -33,9 +33,28 @@ class Digest:
         """
         assert output_len_bits > 0
         assert output_len_bits % 8 == 0
-        # TODO: add more sanity checks of the input parameters
         self.output_len_bytes = output_len_bits // 8
+
+        if algorithm == DigestAlgorithm.SHA256:
+            assert output_len_bits <= 256
+        elif algorithm == DigestAlgorithm.BLAKE2B:
+            assert self.output_len_bytes <= hash.BLAKE2B_BYTES_MAX
+
         self.algorithm = algorithm
+
+    def truncate(self, data: bytes) -> bytes:
+        """Truncate data to correct length
+
+        Args:
+            data (bytes): Data to truncate
+
+        Returns:
+            bytes: Truncated output
+        """
+        if len(data) <= self.output_len_bytes:
+            return data
+        else:
+            return data[: self.output_len_bytes]
 
     def digest(
         self,
@@ -50,13 +69,16 @@ class Digest:
         """
         if self.algorithm == DigestAlgorithm.SHA256:
             # TODO: fix the following lines first
-            h = nacl.hash.sha256(
+            h = hash.sha256(
                 message=data,
-                encoder=nacl.encoding.RawEncoder,
+                encoder=encoding.RawEncoder,
             )
-            return h
+            return self.truncate(h)
         elif self.algorithm == DigestAlgorithm.BLAKE2B:
-            # TODO: Implement BLAKE2
-            raise NotImplementedError("BLAKE2 is not implemented")
+            h = hash.blake2b(
+                data=data,
+                encoder=encoding.RawEncoder,
+            )
+            return self.truncate(h)
         else:
             raise ValueError(f"Unsupported algorithm: {self.algorithm}")
