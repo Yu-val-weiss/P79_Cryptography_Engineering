@@ -1,0 +1,42 @@
+version = 1
+requires-python = ">=3.13"
+
+[manifest]
+members = [
+    "lab1",
+    "lab2",
+    "lab3",
+    "p79-cryptography-engineering",
+]
+
+[[package]]
+name = "lab1"
+version = "0.1.0"
+source = { editable = "lab1" }
+
+[[package]]
+name = "lab2"
+version = "0.1.0"
+source = { editable = "lab2" }
+
+[[package]]
+name = "lab3"
+version = "0.1.0"
+source = { editable = "lab3" }
+
+[[package]]
+name = "p79-cryptography-engineering"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "lab1" },
+    { name = "lab2" },
+    { name = "lab3" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "lab1", editable = "lab1" },
+    { name = "lab2", editable = "lab2" },
+    { name = "lab3", editable = "lab3" },
+]

@@ -1,0 +1,19 @@
+[project]
+name = "p79-cryptography-engineering"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "lab1",
+    "lab2",
+    "lab3",
+]
+
+[tool.uv.workspace]
+members = ["lab1", "lab2", "lab3", "lab4"]
+
+[tool.uv.sources]
+lab1 = { workspace = true }
+lab2 = { workspace = true }
+lab3 = { workspace = true }

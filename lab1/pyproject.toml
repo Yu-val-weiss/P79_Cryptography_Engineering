@@ -1,0 +1,11 @@
+[project]
+name = "lab1"
+version = "0.1.0"
+description = "Primitives, Diffie-Hellman, Signatures"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
