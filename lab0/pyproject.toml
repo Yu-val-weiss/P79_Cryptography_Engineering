@@ -1,0 +1,24 @@
+[project]
+name = "lab0"
+version = "0.1.0"
+description = "Base example repository, including working Dockerfile and run.sh"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "cffi>=1.17.1",
+    "mypy>=1.14.1",
+    "mypy-extensions>=1.0.0",
+    "pycparser>=2.22",
+    "pynacl>=1.5.0",
+    "typing-extensions>=4.12.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 109
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "B", "I"]

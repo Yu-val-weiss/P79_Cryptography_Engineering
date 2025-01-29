@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "lab0",
     "lab1",
     "lab2",
     "lab3",
@@ -12,12 +13,14 @@ dependencies = [
 ]
 
 [tool.uv.workspace]
-members = ["lab1", "lab2", "lab3", "lab4"]
+members = ["lab0", "lab1", "lab2", "lab3", "lab4"]
 
 [tool.uv.sources]
+lab0 = { workspace = true }
 lab1 = { workspace = true }
 lab2 = { workspace = true }
 lab3 = { workspace = true }
+
 
 [tool.ruff]
 line-length = 109
