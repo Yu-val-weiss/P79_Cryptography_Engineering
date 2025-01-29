@@ -1,7 +1,7 @@
 [project]
 name = "lab0"
 version = "0.1.0"
-description = "Base example repository, including working Dockerfile and run.sh"
+description = "Base example repository"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
