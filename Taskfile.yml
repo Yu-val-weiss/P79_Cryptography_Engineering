@@ -36,7 +36,13 @@ tasks:
     desc: "Check mypy."
     vars:
       FOLDER: "lab{{index .MATCH 0}}"
+    cmds:
+      - uv run mypy {{.FOLDER}} --no-explicit-package-bases --no-namespace-packages
+
+  test-*:
+    desc: "Test the folder."
+    vars:
+      FOLDER: "lab{{index .MATCH 0}}"
     dir: "{{.FOLDER}}"
     cmds:
-      - uv run mypy src
-      - uv run mypy tests
+      - uv run python -m unittest discover -v -s tests
