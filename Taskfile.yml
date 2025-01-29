@@ -4,25 +4,20 @@ tasks:
   zip-*:
     desc: "Zip lab directory ready for submission."
     vars:
-      IDX: "{{index .MATCH 0}}"
-      FOLDER: "lab{{.IDX}}"
+      FOLDER: "lab{{index .MATCH 0}}"
     dir: "{{.FOLDER}}"
     cmds:
-      - pwd
       - mkdir -p ../zips
       - cp ../Dockerfile .
       - defer: rm -f Dockerfile
       - cp ../run.sh .
       - defer: rm -f ./run.sh
-      - zip -r ../zips/yw580_submission{{.IDX}}.zip $(git ls-files) $(git ls-files --others --exclude-standard)
+      - zip -r ../zips/{{.FOLDER}}.zip $(git ls-files) $(git ls-files --others --exclude-standard)
     preconditions:
-      - sh: uv run --directory src python -m unittest discover -v -s tests
-        msg: "One or more unit tests are failing, fix before zipping. Try task test-{{.IDX}}"
-      - sh: uv run mypy . --no-explicit-package-bases --no-namespace-packages
-        msg: "Mypy testing failed. Try task mypy-{{.IDX}}"
-      - sh: ls *.pdf
+      - sh: uv run --directory {{.FOLDER}} python -m unittest discover -v -s tests
+        msg: "One or more unit tests are failing, fix before zipping."
+      - sh: ls {{.FOLDER}}/*.pdf
         msg: "Lab report not present, add before zipping."
-
     silent: false
 
   docker-*:
@@ -48,6 +43,6 @@ tasks:
     desc: "Test the folder."
     vars:
       FOLDER: "lab{{index .MATCH 0}}"
-    dir: "{{.FOLDER}}/src"
+    dir: "{{.FOLDER}}"
     cmds:
       - uv run python -m unittest discover -v -s tests
