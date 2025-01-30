@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "Authenticated key exchange"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "pytest>=8.3.4",
+]
 
 [build-system]
 requires = ["hatchling"]

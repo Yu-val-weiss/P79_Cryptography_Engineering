@@ -14,7 +14,7 @@ tasks:
       - defer: rm -f ./run.sh
       - zip -r ../zips/{{.FOLDER}}.zip $(git ls-files) $(git ls-files --others --exclude-standard)
     preconditions:
-      - sh: uv run python -m unittest discover -v -s tests
+      - sh: uv run python -m pytest
         msg: "One or more unit tests are failing, fix before zipping."
       - sh: uv run mypy src
         msg: "Mypy is failing."
@@ -47,4 +47,4 @@ tasks:
       FOLDER: "lab{{index .MATCH 0}}"
     dir: "{{.FOLDER}}"
     cmds:
-      - uv run python -m unittest discover -v -s tests
+      - uv run python -m pytest
