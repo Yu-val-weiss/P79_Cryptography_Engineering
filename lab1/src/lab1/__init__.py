@@ -1,2 +1,1 @@
-def hello() -> str:
-    return "Hello from lab1!"
+"""Package implementing Lab 1's two required tasks."""
