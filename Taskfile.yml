@@ -47,4 +47,4 @@ tasks:
       FOLDER: "lab{{index .MATCH 0}}"
     dir: "{{.FOLDER}}"
     cmds:
-      - uv run python -m pytest
+      - uv run python -m pytest {{.CLI_ARGS}}
