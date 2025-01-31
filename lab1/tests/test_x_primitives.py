@@ -1,5 +1,5 @@
 import pytest
-from src.lab1.x25519 import Point, X25519Base
+from src.lab1.x25519_base import Point, X25519Base
 
 
 @pytest.mark.parametrize(

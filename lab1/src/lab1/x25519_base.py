@@ -1,4 +1,4 @@
-"""Implementation for X25519."""
+"""Implementation for X25519's base class."""
 
 import abc
 
