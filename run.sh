@@ -5,7 +5,7 @@ set -e;
 cd "$(dirname "$0")"
 
 # Build the Docker image
-docker build -t lab0_runner .
+docker build -t X_runner .
 
 # Run the container
-docker run --rm lab0_runner
+docker run -t --rm X_runner

@@ -11,6 +11,7 @@ tasks:
       - cp ../Dockerfile .
       - defer: rm -f Dockerfile
       - cp ../run.sh .
+      - sed -i "" "s/X/{{.FOLDER}}/g" run.sh
       - defer: rm -f ./run.sh
       - zip -r ../zips/{{.FOLDER}}.zip $(git ls-files) $(git ls-files --others --exclude-standard)
     preconditions:
@@ -29,10 +30,18 @@ tasks:
     dir: "{{.FOLDER}}"
     cmds:
       - cp ../Dockerfile .
-      - defer: rm -f Dockerfile
       - cp ../run.sh .
-      - defer: rm -f ./run.sh
+      - sed -i "" "s/X/{{.FOLDER}}/g" run.sh
       - ./run.sh
+  
+  clean-*:
+    desc: "Cleanup."
+    vars:
+      FOLDER: "lab{{index .MATCH 0}}"
+    dir: "{{.FOLDER}}"
+    cmds:
+      - rm -rf run.sh
+      - rm -rf Dockerfile
 
   mypy-*:
     desc: "Check mypy for src."
