@@ -23,12 +23,8 @@ class X25519Base(abc.ABC):
     def _decode_u_coordinate(u: str) -> int:
         """Decode string representation of coordinate."""
         u_list = X25519Base._string_to_bytes(u)
-        X25519Base._mask_u_msb(u_list)
-        return X25519Base._decode_little_endian(u_list)
-
-    @staticmethod
-    def _mask_u_msb(u_list: list[int]):
         u_list[-1] &= (1 << (X25519Base.BITS % 8)) - 1
+        return X25519Base._decode_little_endian(u_list)
 
     @staticmethod
     def _encode_u_coordinate(u: int) -> str:
@@ -55,20 +51,14 @@ class X25519Base(abc.ABC):
         return [b for b in bs]
 
     @staticmethod
-    def _bytes_to_string(k: list[int]) -> str:
-        """Convert list of int (bytes) to hex string"""
-        bs = bytes(k)
-        return bs.hex()
-
-    @staticmethod
-    def _const_time_swap(a: int, b: int, swap: int):
+    def _const_time_swap[T](a: T, b: T, swap: int) -> tuple[T, T]:
         """Swap two values in constant time. Source: https://gist.github.com/nickovs/cc3c22d15f239a2640c185035c06f8a3."""
         index = int(swap) * 2
         temp = (a, b, b, a)
-        return temp[index : index + 2]
+        return temp[index : index + 2]  # type: ignore
 
     @staticmethod
-    def compute_x25519_ladder(k_str: str, u_str: str) -> str:
+    def _compute_x25519_ladder(k_str: str, u_str: str) -> str:
         """Compute value of x25519. Source: RFC.
 
         Args:
@@ -133,12 +123,57 @@ class X25519Base(abc.ABC):
         P = X25519Base.p
 
         x, z = pt_n
-        x_2 = x**2 % P
-        z_2 = z**2 % P
-        x = (x_2 - z_2) ** 2
+        xx = x**2
+        zz = z**2
+        x_res = (xx - zz) ** 2
         xz = x * z
-        z = 4 * xz * (x_2 + X25519Base.A * xz + z_2)
+        z_res = 4 * xz * (xx + X25519Base.A * xz + zz)
+        return x_res % P, z_res % P
+
+    @staticmethod
+    def _point_add(pt_n: Point, pt_m: Point, pt_diff: Point):
+        """Add the points, given their diff, assuming projective coords.
+        Based on https://gist.github.com/nickovs/cc3c22d15f239a2640c185035c06f8a3,
+        and the formulae in Martin's tutorial."""
+        P = X25519Base.p
+
+        x_n, z_n = pt_n
+        x_m, z_m = pt_m
+        x_d, z_d = pt_diff
+        x = (z_d << 2) * (x_m * x_n - z_m * z_n) ** 2
+        z = (x_d << 2) * (x_m * z_n - z_m * x_n) ** 2
         return x % P, z % P
+
+    @staticmethod
+    def _compute_x25519_double_and_add(k_str: str, u_str: str) -> str:
+        """Compute value of x25519. Source: RFC.
+
+        Args:
+            k_str (str): scalar argument
+            u_str (str): u coordinate
+
+        Returns:
+            str: result encoded as hex string
+        """
+        k = X25519Base._decode_scalar(k_str)
+        u = X25519Base._decode_u_coordinate(u_str)
+
+        P = X25519Base.p
+
+        zero: Point = (1, 0)
+        one: Point = (u, 1)
+        m_p, m_1_p = zero, one
+
+        for t in reversed(range(X25519Base.BITS + 1)):
+            bit = bool(k & (1 << t))
+            m_p, m_1_p = X25519Base._const_time_swap(m_p, m_1_p, bit)
+            m_p, m_1_p = X25519Base._point_double(m_p), X25519Base._point_add(m_p, m_1_p, one)
+            m_p, m_1_p = X25519Base._const_time_swap(m_p, m_1_p, bit)
+
+        x, z = m_p
+        inv_z = pow(z, P - 2, P)
+        res = (x * inv_z) % P
+        return X25519Base._encode_u_coordinate(res)
 
     @abc.abstractmethod
     def __init__(self) -> None:
