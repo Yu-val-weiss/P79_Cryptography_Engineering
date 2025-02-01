@@ -10,9 +10,11 @@ tasks:
       - mkdir -p ../zips
       - cp ../Dockerfile .
       - defer: rm -f Dockerfile
+      - cp ../.dockerignore .
+      - defer: rm -f .dockerignore
       - cp ../run.sh .
-      - sed -i "" "s/X/{{.FOLDER}}/g" run.sh
       - defer: rm -f ./run.sh
+      - sed -i "" "s/X/{{.FOLDER}}/g" run.sh
       - zip -r ../zips/{{.FOLDER}}.zip $(git ls-files) $(git ls-files --others --exclude-standard)
     preconditions:
       - sh: uv run python -m pytest
@@ -30,6 +32,7 @@ tasks:
     dir: "{{.FOLDER}}"
     cmds:
       - cp ../Dockerfile .
+      - cp ../.dockerignore .
       - cp ../run.sh .
       - sed -i "" "s/X/{{.FOLDER}}/g" run.sh
       - ./run.sh
@@ -40,8 +43,9 @@ tasks:
       FOLDER: "lab{{index .MATCH 0}}"
     dir: "{{.FOLDER}}"
     cmds:
-      - rm -rf run.sh
-      - rm -rf Dockerfile
+      - rm -f run.sh
+      - rm -f Dockerfile
+      - rm -f .dockerignore
 
   mypy-*:
     desc: "Check mypy for src."
