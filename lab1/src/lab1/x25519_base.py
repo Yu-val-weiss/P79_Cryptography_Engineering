@@ -66,6 +66,11 @@ class X25519Base(abc.ABC):
         return temp[index : index + 2]  # type: ignore
 
     @staticmethod
+    def _mod_mult_inv(x: int) -> int:
+        """Calculate the modular multiplicative inverse"""
+        return pow(x, X25519Base.p - 2, X25519Base.p)
+
+    @staticmethod
     def _compute_x25519_ladder(k_str: str, u_str: str) -> str:
         """Compute value of x25519. Source: RFC.
 
@@ -121,7 +126,7 @@ class X25519Base(abc.ABC):
         x_2, x_3 = X25519Base._const_time_swap(x_2, x_3, swap)
         z_2, z_3 = X25519Base._const_time_swap(z_2, z_3, swap)
 
-        result = (x_2 * (pow(z_2, P - 2, P))) % P
+        result = (x_2 * X25519Base._mod_mult_inv(z_2)) % P
 
         return X25519Base._encode_u_coordinate(result)
 
@@ -179,7 +184,7 @@ class X25519Base(abc.ABC):
             m_p, m_1_p = X25519Base._const_time_swap(m_p, m_1_p, bit)
 
         x, z = m_p
-        inv_z = pow(z, P - 2, P)
+        inv_z = X25519Base._mod_mult_inv(z)
         res = (x * inv_z) % P
         return X25519Base._encode_u_coordinate(res)
 
