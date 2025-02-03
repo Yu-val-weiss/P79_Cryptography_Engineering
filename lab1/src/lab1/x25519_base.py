@@ -144,7 +144,7 @@ class X25519Base(abc.ABC):
         return x_res % P, z_res % P
 
     @staticmethod
-    def _point_add(pt_n: XZProjectivePoint, pt_m: XZProjectivePoint, pt_diff: XZProjectivePoint):
+    def _xz_point_diff_add(pt_n: XZProjectivePoint, pt_m: XZProjectivePoint, pt_diff: XZProjectivePoint):
         """Add the points, given their diff, assuming projective coords.
         Based on https://gist.github.com/nickovs/cc3c22d15f239a2640c185035c06f8a3,
         and the formulae in Martin's tutorial."""
@@ -180,7 +180,7 @@ class X25519Base(abc.ABC):
         for t in reversed(range(X25519Base.BITS + 1)):
             bit = bool(k & (1 << t))
             m_p, m_1_p = X25519Base._const_time_swap(m_p, m_1_p, bit)
-            m_p, m_1_p = X25519Base._point_double(m_p), X25519Base._point_add(m_p, m_1_p, one)
+            m_p, m_1_p = X25519Base._point_double(m_p), X25519Base._xz_point_diff_add(m_p, m_1_p, one)
             m_p, m_1_p = X25519Base._const_time_swap(m_p, m_1_p, bit)
 
         x, z = m_p
