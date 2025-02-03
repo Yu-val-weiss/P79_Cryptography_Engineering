@@ -1,5 +1,5 @@
 import pytest
-from src.lab1.x25519_base import Point, X25519Base
+from src.lab1.x25519_base import DecodeSizeError, Point, X25519Base
 
 
 @pytest.mark.parametrize(
@@ -17,6 +17,23 @@ from src.lab1.x25519_base import Point, X25519Base
 )
 def test_decode_scalar(k, expected):
     assert X25519Base._decode_scalar(k) == expected
+
+
+def pad_hex_to_32(s):
+    # pad little-endian 0s to the end
+    return s + (32 * 2 - len(s)) * "0"
+
+
+@pytest.mark.parametrize(
+    "k,kmod",
+    [(hex(x)[2:], pad_hex_to_32(hex(x % X25519Base.p)[2:])) for x in range(2**255 - 19, 2**255)],
+)
+def test_decode_non_canonical_scalars(k: str, kmod: str):
+    # non canonical scalars must not error, and must be treated as if they had already been modded
+    # (despite not being modded) so should not be the same as actually modded values
+    res = X25519Base._decode_scalar(k)
+    res_mod = X25519Base._decode_scalar(kmod)
+    assert res != res_mod
 
 
 @pytest.mark.parametrize(
@@ -69,9 +86,9 @@ def test_decode_little_endian(u):
 
 
 def test_decode_invalid_length():
-    with pytest.raises(ValueError):
+    with pytest.raises(DecodeSizeError):
         X25519Base._string_to_bytes("ab" * 16)  # Too short (16 bytes)
-    with pytest.raises(ValueError):
+    with pytest.raises(DecodeSizeError):
         X25519Base._string_to_bytes("ab" * 33)  # Too long (33 bytes)
 
 

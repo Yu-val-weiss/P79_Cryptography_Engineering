@@ -1,9 +1,11 @@
 import json
+from itertools import chain
 from pathlib import Path
 
 import pytest
 from nacl.utils import random
 from src.lab1.x25519 import X25519
+from src.lab1.x25519_base import DecodeSizeError
 
 
 @pytest.mark.parametrize(
@@ -76,3 +78,20 @@ def test_wycheproof(private: str, public: str, shared: str):
 
     x = X25519(private)
     assert x.compute_shared_secret(public) == shared
+
+
+@pytest.mark.parametrize("private", ["ab" * i for i in chain(range(32), range(33, 50))])
+def test_size_error(private: str):
+    with pytest.raises(DecodeSizeError):
+        _ = X25519(private)
+
+
+@pytest.mark.parametrize(
+    "private",
+    [
+        "00" * 32,
+        "ff" * 32,
+    ],
+)
+def test_edge_cases(private: str):
+    _ = X25519(private)

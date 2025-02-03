@@ -5,6 +5,14 @@ import abc
 type Point = tuple[int, int]
 
 
+class DecodeSizeError(ValueError):
+    """Invalid scalar/u-coordinate size exception"""
+
+    def __init__(self, *args) -> None:
+        """Init"""
+        super().__init__()
+
+
 class X25519Base(abc.ABC):
     """Implements X25519"""
 
@@ -47,7 +55,7 @@ class X25519Base(abc.ABC):
         """Decodes a hex string into a list of ints (list of bytes)."""
         bs = bytes.fromhex(k)
         if len(bs) != 32:
-            raise ValueError("Values for Curve25519 must be 32 bytes")
+            raise DecodeSizeError(f"Values for Curve25519 must be {X25519Base.ALLOWED_LEN} bytes")
         return [b for b in bs]
 
     @staticmethod

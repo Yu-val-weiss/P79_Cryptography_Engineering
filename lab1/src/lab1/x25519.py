@@ -2,7 +2,7 @@
 
 from nacl.utils import random
 
-from .x25519_base import X25519Base
+from .x25519_base import DecodeSizeError, X25519Base
 
 
 class X25519(X25519Base):
@@ -18,6 +18,10 @@ class X25519(X25519Base):
         """Initialise from secret hex string, or if None using pynacl"""
         if secret is None:
             self._private = random(X25519.ALLOWED_LEN).hex()
+            try:
+                self._decode_scalar(self._private)
+            except DecodeSizeError as e:
+                raise e
         else:
             self._private = secret
 
