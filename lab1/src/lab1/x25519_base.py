@@ -2,7 +2,7 @@
 
 import abc
 
-type Point = tuple[int, int]
+type XZProjectivePoint = tuple[int, int]
 
 
 class DecodeSizeError(ValueError):
@@ -131,7 +131,7 @@ class X25519Base(abc.ABC):
         return X25519Base._encode_u_coordinate(result)
 
     @staticmethod
-    def _point_double(pt_n: Point):
+    def _point_double(pt_n: XZProjectivePoint):
         """Double point, assuming projective coords. Based on https://gist.github.com/nickovs/cc3c22d15f239a2640c185035c06f8a3."""
         P = X25519Base.p
 
@@ -144,7 +144,7 @@ class X25519Base(abc.ABC):
         return x_res % P, z_res % P
 
     @staticmethod
-    def _point_add(pt_n: Point, pt_m: Point, pt_diff: Point):
+    def _point_add(pt_n: XZProjectivePoint, pt_m: XZProjectivePoint, pt_diff: XZProjectivePoint):
         """Add the points, given their diff, assuming projective coords.
         Based on https://gist.github.com/nickovs/cc3c22d15f239a2640c185035c06f8a3,
         and the formulae in Martin's tutorial."""
@@ -173,8 +173,8 @@ class X25519Base(abc.ABC):
 
         P = X25519Base.p
 
-        zero: Point = (1, 0)
-        one: Point = (u, 1)
+        zero: XZProjectivePoint = (1, 0)
+        one: XZProjectivePoint = (u, 1)
         m_p, m_1_p = zero, one
 
         for t in reversed(range(X25519Base.BITS + 1)):
