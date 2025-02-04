@@ -1,5 +1,5 @@
 import pytest
-from src.lab1.x25519_base import DecodeSizeError, Point, X25519Base
+from src.lab1.x25519_base import DecodeSizeError, X25519Base, XZProjectivePoint
 
 
 @pytest.mark.parametrize(
@@ -208,8 +208,8 @@ def test_cannot_init_x25519base():
         ),
     ],
 )
-def test_double(u_str: str, expected: Point):
+def test_double(u_str: str, expected: XZProjectivePoint):
     u = X25519Base._decode_u_coordinate(u_str)
-    u_p: Point = (u, 1)
+    u_p: XZProjectivePoint = (u, 1)
     doubled = X25519Base._point_double(u_p)
     assert doubled == expected
