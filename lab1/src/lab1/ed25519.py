@@ -9,27 +9,35 @@ class Ed25519Client(Ed25519Base):
     _secret: bytes
     _public: bytes
 
-    def __init__(self, secret: bytes | str) -> None:
+    type ClientInput = bytes | str
+
+    def __init__(self, secret: ClientInput) -> None:
         """Initialise client from secret"""
-        super().__init__()
-        if isinstance(secret, str):
-            self._secret = bytes.fromhex(secret)
-        else:
-            self._secret = secret
+        self._secret = self._clean_input(secret)
         if len(self._secret) != self.ALLOWED_LEN:
             raise BadKeyLengthError("Invalid secret length")
 
         self._public = self._secret_to_public(self._secret)
 
+    @staticmethod
+    def _clean_input(data: ClientInput) -> bytes:
+        if isinstance(data, str):
+            return bytes.fromhex(data)
+        return data
+
     @property
     def public(self):
-        """Public key getter"""
+        """Public key"""
         return self._public
 
-    def sign(self, msg: bytes) -> bytes:
-        """Sign message"""
-        return self._sign(self._secret, msg)
+    def sign(self, msg: ClientInput) -> bytes:
+        """Sign message from either bytes or hex string"""
+        return self._sign(self._secret, self._clean_input(msg))
 
-    def verify(self, public: bytes, msg: bytes, signature: bytes) -> bool:
+    def verify(self, public: ClientInput, msg: ClientInput, signature: ClientInput) -> bool:
         """Verify a message's signature"""
-        return self._verify(public, msg, signature)
+        return self._verify(
+            self._clean_input(public),
+            self._clean_input(msg),
+            self._clean_input(signature),
+        )
