@@ -15,6 +15,10 @@ class BadKeyLengthError(ValueError):
     """Key expansion error"""
 
 
+class BadSignatureLengthError(ValueError):
+    """Signature expansion error"""
+
+
 class Ed25519Point:
     """Points are represented as tuples (X, Y, Z, T) of extended coordinates,
     with x = X/Z, y = Y/Z, x*y = T/Z."""
@@ -31,7 +35,7 @@ class Ed25519Point:
         self.Z = Z
         self.T = T
 
-    # important points
+    # important points, cached to speed up execution
     @classmethod
     @functools.lru_cache(None)
     def neutral_element(cls) -> "Ed25519Point":
@@ -161,6 +165,7 @@ class Ed25519Base(X25519Base):
 
     @staticmethod
     def _secret_expand(secret: bytes):
+        """Splits into s_bits and prefix, and clamps s_bits to s"""
         if len(secret) != 32:
             raise BadKeyLengthError("Bad length of private key")
         h = Ed25519Base._sha512(secret)
@@ -173,5 +178,49 @@ class Ed25519Base(X25519Base):
     def _secret_to_public(secret):
         (a, _) = Ed25519Base._secret_expand(secret)
         G = Ed25519Point.base_point()
-
         return Ed25519Point.compress(a * G)
+
+    ## The signature function works as below.
+    @staticmethod
+    def _sign(secret: bytes, msg: bytes) -> bytes:
+        s, prefix = Ed25519Base._secret_expand(secret)
+
+        B = Ed25519Point.base_point()
+        pk = Ed25519Point.compress(s * B)
+
+        r = Ed25519Base._sha512_mod_q(prefix + msg)
+        R = (r * B).compress()
+
+        k = Ed25519Base._sha512_mod_q(R + pk + msg)
+
+        t = (r + k * s) % Ed25519Base.q
+
+        return R + int.to_bytes(t, 32, "little")
+
+    ## And finally the verification function.
+    @staticmethod
+    def _verify(public, msg, signature) -> bool:
+        if len(public) != 32:
+            raise BadKeyLengthError("Bad public key length")
+        if len(signature) != 64:
+            raise BadSignatureLengthError("Bad signature length")
+
+        A = Ed25519Point.decompress(public)
+        if not A:
+            return False
+
+        R_bits = signature[:32]
+        R = Ed25519Point.decompress(R_bits)
+        if not R:
+            return False
+
+        t = int.from_bytes(signature[32:], "little")
+        if t >= Ed25519Base.q:
+            return False
+        # so by definition t = t_bits % q
+
+        k = Ed25519Base._sha512_mod_q(R_bits + public + msg)
+
+        B = Ed25519Point.base_point()
+
+        return t * B == R + k * A
