@@ -26,10 +26,10 @@ class Ed25519Client(Ed25519Base):
         """Public key getter"""
         return self._public
 
-    def sign_message(self, msg: bytes) -> bytes:
+    def sign(self, msg: bytes) -> bytes:
         """Sign message"""
         return self._sign(self._secret, msg)
 
-    def verify_message(self, public: bytes, msg: bytes, signature: bytes) -> bool:
+    def verify(self, public: bytes, msg: bytes, signature: bytes) -> bool:
         """Verify a message's signature"""
         return self._verify(public, msg, signature)
