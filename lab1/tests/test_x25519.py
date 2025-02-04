@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from nacl.utils import random
-from src.lab1.x25519 import X25519
+from src.lab1.x25519 import X25519Client
 from src.lab1.x25519_base import DecodeSizeError
 
 
@@ -22,7 +22,7 @@ from src.lab1.x25519_base import DecodeSizeError
     ],
 )
 def test_pk_generation(sk: str, exp_pk: str):
-    x = X25519(sk)
+    x = X25519Client(sk)
     assert x.public == exp_pk
 
 
@@ -37,8 +37,8 @@ def test_pk_generation(sk: str, exp_pk: str):
     ],
 )
 def test_shared_secret(sk_1: str, sk_2: str, exp: str):
-    x = X25519(sk_1)
-    y = X25519(sk_2)
+    x = X25519Client(sk_1)
+    y = X25519Client(sk_2)
 
     assert x.compute_shared_secret(y.public) == exp
     assert y.compute_shared_secret(x.public) == exp
@@ -49,8 +49,8 @@ def test_shared_secret(sk_1: str, sk_2: str, exp: str):
     [(random(32).hex(), random(32).hex()) for _ in range(100)],
 )
 def test_shared_secret_randomised(sk_1: str, sk_2: str):
-    x = X25519(sk_1)
-    y = X25519(sk_2)
+    x = X25519Client(sk_1)
+    y = X25519Client(sk_2)
 
     assert x.compute_shared_secret(y.public) == y.compute_shared_secret(x.public)
 
@@ -76,14 +76,14 @@ def load_wycheproof_data():
 def test_wycheproof(private: str, public: str, shared: str):
     """Source for these tests: https://github.com/C2SP/wycheproof/blob/master/testvectors/x25519_test.json."""
 
-    x = X25519(private)
+    x = X25519Client(private)
     assert x.compute_shared_secret(public) == shared
 
 
 @pytest.mark.parametrize("private", ["ab" * i for i in chain(range(32), range(33, 50))])
 def test_size_error(private: str):
     with pytest.raises(DecodeSizeError):
-        _ = X25519(private)
+        _ = X25519Client(private)
 
 
 @pytest.mark.parametrize(
@@ -94,4 +94,4 @@ def test_size_error(private: str):
     ],
 )
 def test_edge_cases(private: str):
-    _ = X25519(private)
+    _ = X25519Client(private)

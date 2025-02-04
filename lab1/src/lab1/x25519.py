@@ -1,12 +1,12 @@
-"""Diffie-Hellman implementation using X25519"""
+"""Client for X25519 diffie-Hellman implementation"""
 
 from nacl.utils import random
 
 from .x25519_base import DecodeSizeError, X25519Base
 
 
-class X25519(X25519Base):
-    """Concrete implementation of Diffie-Hellman using Curve25519"""
+class X25519Client(X25519Base):
+    """Concrete client-facing implementation of Diffie-Hellman using Curve25519"""
 
     type Key = str
     BASE_POINT_U = "09" + 31 * "00"
@@ -17,7 +17,7 @@ class X25519(X25519Base):
     def __init__(self, secret: str | None = None) -> None:
         """Initialise from secret hex string, or if None using pynacl"""
         if secret is None:
-            self._private = random(X25519.ALLOWED_LEN).hex()
+            self._private = random(self.ALLOWED_LEN).hex()
             try:
                 self._decode_scalar(self._private)
             except DecodeSizeError as e:
