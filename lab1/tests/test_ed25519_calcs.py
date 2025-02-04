@@ -1,7 +1,8 @@
+import random
 from pathlib import Path
 
 import pytest
-from src.lab1.ed25519_base import Ed25519Base
+from src.lab1.ed25519_base import BadKeyLengthError, BadSignatureLengthError, Ed25519Base
 
 RFC_8032_TEST_VECTORS = [
     (
@@ -61,3 +62,61 @@ def test_public_key_gen(sk: str, pk: str):
     public = bytes.fromhex(pk)
 
     assert Ed25519Base._secret_to_public(secret) == public
+
+
+def read_test_file():
+    # Get the current script directory
+    script_dir = Path(__file__).parent
+
+    # Define the relative path to the file you want to open
+    file_path = script_dir / "ed25519_test.txt"
+
+    # Open the file
+    with open(file_path, "r") as file:
+        for line in file:
+            sk, pk, msg, sig, *_ = line.split(":")
+            yield sk, pk, msg, sig
+
+
+@pytest.mark.parametrize("sk,pk,msg,sig", read_test_file())
+def test_all_from_big_file(sk: str, pk: str, msg: str, sig: str):
+    secret = bytes.fromhex(sk)[:32]
+    public = bytes.fromhex(pk)
+    message = bytes.fromhex(msg)
+    signature = bytes.fromhex(sig)[:64]
+
+    assert Ed25519Base._secret_to_public(secret) == public
+    assert Ed25519Base._sign(secret, message) == signature
+    assert Ed25519Base._verify(public, message, signature)
+
+
+def mess_string(s: bytes):
+    if len(s) == 0:
+        return b"x"
+    num_to_xor = random.randint(1, 100)
+    pos = random.randint(0, len(s) - 1)
+    return s[:pos] + int.to_bytes(s[pos] ^ num_to_xor, 1, "little") + s[pos + 1 :]
+
+
+@pytest.mark.parametrize("sk,pk,msg,sig", read_test_file())
+def test_messed_values(sk: str, pk: str, msg: str, sig: str):
+    secret = bytes.fromhex(sk)[:32]
+    public = bytes.fromhex(pk)
+    message = bytes.fromhex(msg)
+    signature = bytes.fromhex(sig)[:64]
+
+    bad_message = mess_string(message)
+    bad_signature = mess_string(signature)
+
+    assert Ed25519Base._sign(secret, bad_message) != signature
+    assert not Ed25519Base._verify(public, message, bad_signature)
+
+
+def test_raises_right_things():
+    blank = bytes.fromhex("")
+    aa = bytes.fromhex("aa" * 44)
+    with pytest.raises(BadKeyLengthError):
+        Ed25519Base._verify(aa, blank, blank)
+
+    with pytest.raises(BadSignatureLengthError):
+        Ed25519Base._verify(aa[:32], blank, aa)
