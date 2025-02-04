@@ -35,13 +35,13 @@ class Ed25519Point:
         self.Z = Z
         self.T = T
 
-    # important points, cached to speed up execution
+    # important point
     @classmethod
-    @functools.lru_cache(None)
     def neutral_element(cls) -> "Ed25519Point":
         """Returns the neutral element, `(0, 1, 1, 0)`."""
         return cls(0, 1, 1, 0)
 
+    # cached to speed up execution
     @classmethod
     @functools.lru_cache(None)
     def base_point(cls) -> "Ed25519Point":
