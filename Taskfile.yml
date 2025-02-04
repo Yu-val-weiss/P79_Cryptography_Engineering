@@ -16,6 +16,7 @@ tasks:
       - defer: rm -f ./run.sh
       - sed -i "" "s/X/{{.FOLDER}}/g" run.sh
       - zip -r ../zips/{{.FOLDER}}.zip $(git ls-files) $(git ls-files --others --exclude-standard)
+      - du -sh ../zips/{{.FOLDER}}.zip
     preconditions:
       - sh: uv run python -m pytest
         msg: "One or more unit tests are failing, fix before zipping."
