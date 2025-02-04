@@ -105,7 +105,7 @@ class Ed25519Point:
     # point compression operations
 
     @staticmethod
-    def recover_x(y: int, sign: int):
+    def recover_x(y: int, sign: int) -> int | None:
         """Recover point's x from a given y."""
         if y >= Ed25519Base.p:
             return None
@@ -178,7 +178,7 @@ class Ed25519Base(X25519Base):
         return int.from_bytes(Ed25519Base._sha512(s), "little") % Ed25519Base.q
 
     @staticmethod
-    def _secret_expand(secret: bytes):
+    def _secret_expand(secret: bytes) -> tuple[int, bytes]:
         """Splits into s_bits and prefix, and clamps s_bits to s"""
         if len(secret) != 32:
             raise BadKeyLengthError("Bad length of private key")
@@ -189,7 +189,7 @@ class Ed25519Base(X25519Base):
         return (a, h[32:])
 
     @staticmethod
-    def _secret_to_public(secret):
+    def _secret_to_public(secret: bytes) -> bytes:
         (a, _) = Ed25519Base._secret_expand(secret)
         G = Ed25519Point.base_point()
         return Ed25519Point.compress(a * G)
