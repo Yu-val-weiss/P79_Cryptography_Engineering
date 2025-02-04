@@ -61,6 +61,20 @@ class Ed25519Point:
         E, F, G, H = B - A, D - C, D + C, B + A
         return Ed25519Point(E * F, G * H, F * G, E * H)
 
+    def _double(self) -> "Ed25519Point":
+        A = self.X * self.X % Ed25519Base.p
+        B = self.Y * self.Y % Ed25519Base.p
+        Ch = self.Z * self.Z % Ed25519Base.p
+        C = Ch + Ch % Ed25519Base.p
+        H = A + B % Ed25519Base.p
+        xys = self.X + self.Y % Ed25519Base.p
+        E = H - xys * xys % Ed25519Base.p
+        G = A - B % Ed25519Base.p
+        F = C + G % Ed25519Base.p
+        return Ed25519Point(
+            E * F % Ed25519Base.p, G * H % Ed25519Base.p, F * G % Ed25519Base.p, E * H % Ed25519Base.p
+        )
+
     def __mul__(self, s: int) -> "Ed25519Point":
         """Multiply by a scalar, `s`"""
         P = self
@@ -68,7 +82,7 @@ class Ed25519Point:
         while s > 0:
             if s & 1:
                 Q += P
-            P += P
+            P = P._double()
             s >>= 1
         return Q
 
@@ -199,7 +213,7 @@ class Ed25519Base(X25519Base):
 
     ## And finally the verification function.
     @staticmethod
-    def _verify(public, msg, signature) -> bool:
+    def _verify(public: bytes, msg: bytes, signature: bytes) -> bool:
         if len(public) != 32:
             raise BadKeyLengthError("Bad public key length")
         if len(signature) != 64:
