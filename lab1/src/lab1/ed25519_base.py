@@ -65,6 +65,7 @@ class Ed25519Point:
         E, F, G, H = B - A, D - C, D + C, B + A
         return Ed25519Point(E * F, G * H, F * G, E * H)
 
+    # not strictly necessary, but it does slightly speed up the implementation
     def _double(self) -> "Ed25519Point":
         A = self.X * self.X % Ed25519Base.p
         B = self.Y * self.Y % Ed25519Base.p

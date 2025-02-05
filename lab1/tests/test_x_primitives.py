@@ -65,7 +65,7 @@ def test_decode_u_coordinate(u, expected):
             "e5210f12786811d3f4b7959d0538ae2c31dbe7106fc03c3efc4cd549c715a413",
             # note changed to 13 at the end as highlighted in errata
             # this bit is masked on input so doesn't matter for the other ones
-            # but just allows testing a function to work
+            # but just allows testing this function properly
         ),
     ],
 )
