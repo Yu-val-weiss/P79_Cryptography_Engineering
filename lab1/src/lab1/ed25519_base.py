@@ -43,7 +43,7 @@ class Ed25519Point:
 
     # cached to speed up execution
     @classmethod
-    @functools.lru_cache(None)
+    @functools.cache
     def base_point(cls) -> "Ed25519Point":
         """Returns the base point G"""
         g_y = 4 * Ed25519Base._mod_mult_inv(5) % X25519Base.p
