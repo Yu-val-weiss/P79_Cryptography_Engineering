@@ -1,6 +1,5 @@
 """Ed25519 base implementation"""
 
-import functools
 import hashlib
 from typing import cast
 
@@ -28,6 +27,9 @@ class Ed25519Point:
     Z: int
     T: int
 
+    _BASE_POINT: "Ed25519Point|None" = None
+    _NEUTRAL_ELEMENT: "Ed25519Point|None" = None
+
     def __init__(self, X: int, Y: int, Z: int, T: int) -> None:
         """Initialise Point class"""
         self.X = X
@@ -35,20 +37,22 @@ class Ed25519Point:
         self.Z = Z
         self.T = T
 
-    # important point
+    # important points base and neutral element
     @classmethod
     def neutral_element(cls) -> "Ed25519Point":
         """Returns the neutral element, `(0, 1, 1, 0)`."""
-        return cls(0, 1, 1, 0)
+        if cls._NEUTRAL_ELEMENT is None:
+            cls._NEUTRAL_ELEMENT = cls(0, 1, 1, 0)
+        return cls._NEUTRAL_ELEMENT
 
-    # cached to speed up execution
     @classmethod
-    @functools.cache
     def base_point(cls) -> "Ed25519Point":
         """Returns the base point G"""
-        g_y = 4 * Ed25519Base._mod_mult_inv(5) % X25519Base.p
-        g_x = cast(int, cls.recover_x(g_y, 0))
-        return cls(g_x, g_y, 1, g_x * g_y % X25519Base.p)
+        if cls._BASE_POINT is None:
+            g_y = 4 * Ed25519Base._mod_mult_inv(5) % X25519Base.p
+            g_x = cast(int, cls.recover_x(g_y, 0))
+            cls._BASE_POINT = cls(g_x, g_y, 1, g_x * g_y % X25519Base.p)
+        return cls._BASE_POINT
 
     # point operations
     def __add__(self, Q: "Ed25519Point") -> "Ed25519Point":
