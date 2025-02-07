@@ -1,6 +1,7 @@
 import pytest
 from nacl.utils import random
-from src.lab1.ed25519_base import DecompressionError, Ed25519Point
+from src.lab1.ed25519_base import Ed25519Point
+from src.lab1.errors import DecompressionError
 
 
 def random_points_generator(num: int):

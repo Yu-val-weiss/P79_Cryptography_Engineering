@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 from nacl.utils import random
+from src.lab1.errors import DecodeSizeError
 from src.lab1.x25519 import X25519Client
-from src.lab1.x25519_base import DecodeSizeError
 
 
 @pytest.mark.parametrize(

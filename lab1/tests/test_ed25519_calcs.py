@@ -118,5 +118,5 @@ def test_raises_right_things():
     with pytest.raises(BadKeyLengthError):
         Ed25519Base._verify(aa, blank, blank)
 
-    with pytest.raises(BadSignatureLengthError):
+    with pytest.raises(BadSignatureLengthError, match="Bad signature length, expected 64 bytes but got 44"):
         Ed25519Base._verify(aa[:32], blank, aa)

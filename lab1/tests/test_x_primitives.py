@@ -1,5 +1,6 @@
 import pytest
-from src.lab1.x25519_base import DecodeSizeError, X25519Base, XZProjectivePoint
+from src.lab1.errors import DecodeSizeError
+from src.lab1.x25519_base import X25519Base, XZProjectivePoint
 
 
 @pytest.mark.parametrize(

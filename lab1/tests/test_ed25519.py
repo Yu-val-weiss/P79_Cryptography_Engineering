@@ -1,6 +1,6 @@
 import pytest
 from src.lab1.ed25519 import Ed25519Client
-from src.lab1.ed25519_base import BadKeyLengthError
+from src.lab1.errors import BadKeyLengthError
 
 from .test_ed25519_calcs import RFC_8032_TEST_VECTORS
 

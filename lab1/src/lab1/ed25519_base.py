@@ -3,19 +3,8 @@
 import hashlib
 from typing import cast
 
+from .errors import BadKeyLengthError, BadSignatureLengthError, DecompressionError
 from .x25519_base import X25519Base
-
-
-class DecompressionError(ValueError):
-    """Point decompression error"""
-
-
-class BadKeyLengthError(ValueError):
-    """Key expansion error"""
-
-
-class BadSignatureLengthError(ValueError):
-    """Signature expansion error"""
 
 
 class Ed25519Point:
@@ -145,7 +134,7 @@ class Ed25519Point:
     def decompress(cls, s: bytes) -> "Ed25519Point | None":
         """Decompress byte representation to a point."""
         if len(s) != Ed25519Base.ALLOWED_LEN:
-            raise DecompressionError("Invalid input length for decompression")
+            raise DecompressionError(Ed25519Base.ALLOWED_LEN, len(s))
 
         y = int.from_bytes(s, "little")
 
@@ -186,7 +175,7 @@ class Ed25519Base(X25519Base):
     def _secret_expand(secret: bytes) -> tuple[int, bytes]:
         """Splits into s_bits and prefix, and clamps s_bits to s"""
         if len(secret) != 32:
-            raise BadKeyLengthError("Bad length of private key")
+            raise BadKeyLengthError(32, len(secret))
         h = Ed25519Base._sha512(secret)
         a = int.from_bytes(h[:32], "little")
         a &= (1 << 254) - 8
@@ -219,10 +208,10 @@ class Ed25519Base(X25519Base):
     ## And finally the verification function.
     @staticmethod
     def _verify(public: bytes, msg: bytes, signature: bytes) -> bool:
-        if len(public) != 32:
-            raise BadKeyLengthError("Bad public key length")
-        if len(signature) != 64:
-            raise BadSignatureLengthError("Bad signature length")
+        if (lp := len(public)) != 32:
+            raise BadKeyLengthError(32, lp)
+        if (ls := len(signature)) != 64:
+            raise BadSignatureLengthError(64, ls)
 
         A = Ed25519Point.decompress(public)
         if not A:

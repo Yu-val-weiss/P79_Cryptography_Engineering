@@ -2,7 +2,8 @@
 
 from nacl.utils import random
 
-from .x25519_base import DecodeSizeError, X25519Base
+from .errors import DecodeSizeError
+from .x25519_base import X25519Base
 
 
 class X25519Client(X25519Base):
