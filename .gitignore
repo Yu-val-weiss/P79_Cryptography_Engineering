@@ -173,3 +173,4 @@ uv.lock
 
 .DS_Store
 /.vscode
+*.bib
