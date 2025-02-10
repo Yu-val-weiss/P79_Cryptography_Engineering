@@ -5,7 +5,7 @@ from src.lab1.x25519_base import X25519Base
 
 
 @pytest.mark.parametrize(
-    "k,u,expected",
+    "k_str,u_str,expected",
     [
         (
             "a546e36bf0527c9d3b16154b82465edd62144c0ac1fc5a18506a2244ba449ac4",
@@ -19,8 +19,12 @@ from src.lab1.x25519_base import X25519Base
         ),
     ],
 )
-def test_compute_ladder(k: str, u: str, expected: str):
-    assert X25519Base._compute_x25519_ladder(k, u) == expected
+def test_compute_ladder(k_str: str, u_str: str, expected: str):
+    k = X25519Base._decode_scalar(k_str)
+    u = X25519Base._decode_u_coordinate(u_str)
+    res = X25519Base._compute_x25519_ladder(k, u)
+
+    assert X25519Base._encode_u_coordinate(res) == expected
 
 
 @pytest.mark.parametrize(
@@ -47,7 +51,7 @@ def test_compute_double_and_add(k: str, u: str, expected: str):
     [
         (1, "422c8e7a6227d7bca1350b3e2bb7279f7897b87bb6854b783c60e80311ae3079"),
         (1_000, "684cf59ba83309552800ef566f2f4d3c1c3887c49360e3875f2eb94d99532c51"),
-        # (1_000_000, "7c3911e0ab2586fd864497297e575e6f3bc601c0883c30df5f4dd2d24f665424") slow-running
+        # (1_000_000, "7c3911e0ab2586fd864497297e575e6f3bc601c0883c30df5f4dd2d24f665424"),  # slow-running
     ],
 )
 def test_iterated_compute_ladder(iters: int, expected: str):
@@ -56,7 +60,8 @@ def test_iterated_compute_ladder(iters: int, expected: str):
 
     for _ in range(iters):
         old_k = k
-        k = X25519Base._compute_x25519_ladder(k, u)
+        res = X25519Base._compute_x25519_ladder(k, u)
+        k = X25519Base._encode_u_coordinate(res)
         u = old_k
 
     assert k == expected

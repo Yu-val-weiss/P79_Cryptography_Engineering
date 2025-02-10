@@ -37,3 +37,7 @@ class DecodeSizeError(BadLengthError):
     """Invalid scalar/u-coordinate size exception"""
 
     message_base = "Invalid scalar/u-coordinate"
+
+
+class ZeroSharedSecret(ValueError):
+    """Shared secret was zero"""

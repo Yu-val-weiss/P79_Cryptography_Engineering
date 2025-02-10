@@ -1,10 +1,13 @@
 """Implementation for X25519's base class."""
 
 import abc
+from typing import Literal, Sequence, overload
 
 from .errors import DecodeSizeError
 
 type XZProjectivePoint = tuple[int, int]
+
+type DecodeType = str | list[int] | bytes | int
 
 
 class X25519Base(abc.ABC):
@@ -17,31 +20,63 @@ class X25519Base(abc.ABC):
     a24 = 121665
 
     @staticmethod
-    def _decode_little_endian(b: bytes | list[int]):
+    def _decode_little_endian(b: bytes | Sequence[int]):
         """Decodes a list of bytes (little-endian) into an int."""
         return sum([b[i] << 8 * i for i in range(X25519Base.ALLOWED_LEN)])
 
     @staticmethod
-    def _decode_u_coordinate(u: str) -> int:
+    def _decode_u_coordinate(u: DecodeType) -> int:
         """Decode string representation of coordinate."""
-        u_list = X25519Base._string_to_bytes(u)
+        u_list = X25519Base._decode_type_to_list_int(u)
         u_list[-1] &= (1 << (X25519Base.BITS % 8)) - 1
         return X25519Base._decode_little_endian(u_list)
 
+    @overload
     @staticmethod
-    def _encode_u_coordinate(u: int) -> str:
-        """Encodes u coordinate into byte string."""
-        u = u % X25519Base.p
-        x = u.to_bytes(length=X25519Base.ALLOWED_LEN, byteorder="little")
-        return bytes(x).hex()
+    def _encode_u_coordinate(u: int, *, to_str: Literal[True]) -> str: ...
+
+    @overload
+    @staticmethod
+    def _encode_u_coordinate(u: int) -> str: ...
+
+    @overload
+    @staticmethod
+    def _encode_u_coordinate(u: int, *, to_str: Literal[False]) -> bytes: ...
+
+    @overload
+    @staticmethod
+    def _encode_u_coordinate(u: int, *, to_str: bool) -> str | bytes: ...
 
     @staticmethod
-    def _decode_scalar(k: str):
-        """Decodes a scalar hex string into a little endian int"""
-        k_list = X25519Base._string_to_bytes(k)
+    def _encode_u_coordinate(u: int, *, to_str: bool = True) -> str | bytes:
+        """Encodes u coordinate into bytes or hex string (if `to_str is True`)."""
+        u = u % X25519Base.p
+        x = u.to_bytes(length=X25519Base.ALLOWED_LEN, byteorder="little")
+        return x.hex() if to_str else x
+
+    @staticmethod
+    def _decode_type_to_list_int(x: DecodeType) -> list[int]:
+        """Decodes of type decodetype to list int (bytes)"""
+        if isinstance(x, str):
+            x_list = X25519Base._string_to_bytes(x)
+        elif isinstance(x, (bytes, bytearray, memoryview)):
+            x_list = list(x)
+        elif isinstance(x, int):
+            x_list = list(x.to_bytes(length=X25519Base.ALLOWED_LEN, byteorder="little"))
+        else:
+            x_list = [z & 0xFF for z in x]
+        return x_list
+
+    @staticmethod
+    def _decode_scalar(k: DecodeType):
+        """Decodes a scalar into a little endian int, i.e. puts to list of ints (bytes) and clamps."""
+        k_list = X25519Base._decode_type_to_list_int(k)
+
+        # clamp bytes
         k_list[0] &= 248
         k_list[31] &= 127
         k_list[31] |= 64
+
         return X25519Base._decode_little_endian(k_list)
 
     @staticmethod
@@ -50,7 +85,7 @@ class X25519Base(abc.ABC):
         bs = bytes.fromhex(k)
         if (lbs := len(bs)) != 32:
             raise DecodeSizeError(X25519Base.ALLOWED_LEN, lbs)
-        return [b for b in bs]
+        return list(bs)
 
     @staticmethod
     def _const_time_swap[T](a: T, b: T, swap: int) -> tuple[T, T]:
@@ -65,18 +100,18 @@ class X25519Base(abc.ABC):
         return pow(x, X25519Base.p - 2, X25519Base.p)
 
     @staticmethod
-    def _compute_x25519_ladder(k_str: str, u_str: str) -> str:
+    def _compute_x25519_ladder(k_d: DecodeType, u_d: DecodeType) -> int:
         """Compute value of x25519. Source: RFC.
 
         Args:
-            k_str (str): scalar argument
-            u_str (str): u coordinate
+            k_d (decode type): scalar argument
+            u_d (decode type): u coordinate
 
         Returns:
-            str: result encoded as hex string
+            int: result as an int
         """
-        k = X25519Base._decode_scalar(k_str)
-        u = X25519Base._decode_u_coordinate(u_str)
+        k = X25519Base._decode_scalar(k_d)
+        u = X25519Base._decode_u_coordinate(u_d)
 
         P = X25519Base.p
 
@@ -120,9 +155,7 @@ class X25519Base(abc.ABC):
         x_2, x_3 = X25519Base._const_time_swap(x_2, x_3, swap)
         z_2, z_3 = X25519Base._const_time_swap(z_2, z_3, swap)
 
-        result = (x_2 * X25519Base._mod_mult_inv(z_2)) % P
-
-        return X25519Base._encode_u_coordinate(result)
+        return (x_2 * X25519Base._mod_mult_inv(z_2)) % P
 
     @staticmethod
     def _point_double(pt_n: XZProjectivePoint):
@@ -152,7 +185,7 @@ class X25519Base(abc.ABC):
         return x % P, z % P
 
     @staticmethod
-    def _compute_x25519_double_and_add(k_str: str, u_str: str) -> str:
+    def _compute_x25519_double_and_add(k_str: DecodeType, u_str: DecodeType) -> str:
         """Compute value of x25519. Source: RFC.
 
         Args:

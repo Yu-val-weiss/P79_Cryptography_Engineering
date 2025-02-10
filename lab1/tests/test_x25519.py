@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from nacl.utils import random
-from src.lab1.errors import DecodeSizeError
+from src.lab1.errors import DecodeSizeError, ZeroSharedSecret
 from src.lab1.x25519 import X25519Client
 
 
@@ -40,8 +40,11 @@ def test_shared_secret(sk_1: str, sk_2: str, exp: str):
     x = X25519Client(sk_1)
     y = X25519Client(sk_2)
 
-    assert x.compute_shared_secret(y.public) == exp
-    assert y.compute_shared_secret(x.public) == exp
+    x_shared = x.compute_shared_secret(y.public)
+    y_shared = y.compute_shared_secret(x.public)
+
+    assert x._encode_u_coordinate(x_shared) == exp
+    assert y._encode_u_coordinate(y_shared) == exp
 
 
 @pytest.mark.parametrize(
@@ -77,7 +80,13 @@ def test_wycheproof(private: str, public: str, shared: str):
     """Source for these tests: https://github.com/C2SP/wycheproof/blob/master/testvectors/x25519_test.json."""
 
     x = X25519Client(private)
-    assert x.compute_shared_secret(public) == shared
+    shared_secret = x.compute_shared_secret(public)
+
+    assert X25519Client._encode_u_coordinate(shared_secret) == shared
+
+    if shared == "00" * 32:
+        with pytest.raises(ZeroSharedSecret):
+            x.compute_shared_secret(public, abort_if_zero=True)
 
 
 @pytest.mark.parametrize("private", ["ab" * i for i in chain(range(32), range(33, 50))])
