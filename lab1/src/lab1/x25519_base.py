@@ -3,6 +3,7 @@
 import abc
 from typing import Literal, Sequence, overload
 
+from .curve25519 import Curve25519
 from .errors import DecodeSizeError
 
 type XZProjectivePoint = tuple[int, int]
@@ -15,9 +16,6 @@ class X25519Base(abc.ABC):
 
     BITS = 255
     ALLOWED_LEN = 32
-    p = 2**255 - 19
-    A = 486662
-    a24 = 121665
 
     @staticmethod
     def _decode_little_endian(b: bytes | Sequence[int]):
@@ -50,7 +48,7 @@ class X25519Base(abc.ABC):
     @staticmethod
     def _encode_u_coordinate(u: int, *, to_str: bool = True) -> str | bytes:
         """Encodes u coordinate into bytes or hex string (if `to_str is True`)."""
-        u = u % X25519Base.p
+        u = u % Curve25519.p
         x = u.to_bytes(length=X25519Base.ALLOWED_LEN, byteorder="little")
         return x.hex() if to_str else x
 
@@ -83,7 +81,7 @@ class X25519Base(abc.ABC):
     def _string_to_bytes(k: str) -> list[int]:
         """Decodes a hex string into a list of ints (list of bytes)."""
         bs = bytes.fromhex(k)
-        if (lbs := len(bs)) != 32:
+        if (lbs := len(bs)) != X25519Base.ALLOWED_LEN:
             raise DecodeSizeError(X25519Base.ALLOWED_LEN, lbs)
         return list(bs)
 
@@ -97,7 +95,7 @@ class X25519Base(abc.ABC):
     @staticmethod
     def _mod_mult_inv(x: int) -> int:
         """Calculate the modular multiplicative inverse"""
-        return pow(x, X25519Base.p - 2, X25519Base.p)
+        return pow(x, Curve25519.p - 2, Curve25519.p)
 
     @staticmethod
     def _compute_x25519_ladder(k_d: DecodeType, u_d: DecodeType) -> int:
@@ -113,7 +111,7 @@ class X25519Base(abc.ABC):
         k = X25519Base._decode_scalar(k_d)
         u = X25519Base._decode_u_coordinate(u_d)
 
-        P = X25519Base.p
+        P = Curve25519.p
 
         x_1 = u % P
         x_2 = 1
@@ -149,7 +147,7 @@ class X25519Base(abc.ABC):
             x_2 = AA * BB
             x_2 %= P
 
-            z_2 = E * ((AA + ((X25519Base.a24 * E) % P)) % P)
+            z_2 = E * ((AA + ((Curve25519.a24 * E) % P)) % P)
             z_2 %= P
 
         x_2, x_3 = X25519Base._const_time_swap(x_2, x_3, swap)
@@ -160,14 +158,14 @@ class X25519Base(abc.ABC):
     @staticmethod
     def _point_double(pt_n: XZProjectivePoint):
         """Double point, assuming projective coords. Based on https://gist.github.com/nickovs/cc3c22d15f239a2640c185035c06f8a3."""
-        P = X25519Base.p
+        P = Curve25519.p
 
         x, z = pt_n
         xx = x**2
         zz = z**2
         x_res = (xx - zz) ** 2
         xz = x * z
-        z_res = 4 * xz * (xx + X25519Base.A * xz + zz)
+        z_res = 4 * xz * (xx + Curve25519.A * xz + zz)
         return x_res % P, z_res % P
 
     @staticmethod
@@ -175,7 +173,7 @@ class X25519Base(abc.ABC):
         """Add the points, given their diff, assuming projective coords.
         Based on https://gist.github.com/nickovs/cc3c22d15f239a2640c185035c06f8a3,
         and the formulae in Martin's tutorial."""
-        P = X25519Base.p
+        P = Curve25519.p
 
         x_n, z_n = pt_n
         x_m, z_m = pt_m
@@ -198,7 +196,7 @@ class X25519Base(abc.ABC):
         k = X25519Base._decode_scalar(k_str)
         u = X25519Base._decode_u_coordinate(u_str)
 
-        P = X25519Base.p
+        P = Curve25519.p
 
         zero: XZProjectivePoint = (1, 0)
         one: XZProjectivePoint = (u, 1)

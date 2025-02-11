@@ -14,8 +14,8 @@ class Ed25519Client(Ed25519Base):
     def __init__(self, secret: ClientInput) -> None:
         """Initialise client from secret"""
         self._secret = self._clean_input(secret)
-        if (lens := len(self._secret)) != self.ALLOWED_LEN:
-            raise BadKeyLengthError(self.ALLOWED_LEN, lens)
+        if (lens := len(self._secret)) != self.KEY_LEN:
+            raise BadKeyLengthError(self.KEY_LEN, lens)
 
         self._public = self._secret_to_public(self._secret)
 

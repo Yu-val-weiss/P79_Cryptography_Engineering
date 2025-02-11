@@ -1,4 +1,5 @@
 import pytest
+from src.lab1.curve25519 import Curve25519
 from src.lab1.errors import DecodeSizeError
 from src.lab1.x25519_base import X25519Base, XZProjectivePoint
 
@@ -27,7 +28,7 @@ def pad_hex_to_32(s):
 
 @pytest.mark.parametrize(
     "k,kmod",
-    [(hex(x)[2:], pad_hex_to_32(hex(x % X25519Base.p)[2:])) for x in range(2**255 - 19, 2**255)],
+    [(hex(x)[2:], pad_hex_to_32(hex(x % Curve25519.p)[2:])) for x in range(2**255 - 19, 2**255)],
 )
 def test_decode_non_canonical_scalars(k: str, kmod: str):
     # non canonical scalars must not error, and must be treated as if they had already been modded
@@ -108,7 +109,7 @@ def test_decode_invalid_length():
 def test_encode_decode_roundtrip(value):
     encoded = X25519Base._encode_u_coordinate(value)
     decoded = X25519Base._decode_u_coordinate(encoded)
-    assert decoded == value % X25519Base.p
+    assert decoded == value % Curve25519.p
 
 
 @pytest.mark.parametrize(
