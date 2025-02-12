@@ -24,7 +24,7 @@ def test_client_public_key_gen(sk: str, pk: str):
     assert Ed25519Client(sk).public == public
 
 
-@pytest.mark.parametrize("sk", ["ab" * i for i in range(50) if i != 32])
+@pytest.mark.parametrize("sk", ["ab" * i for i in range(1, 50) if i != 32])
 def test_client_initialised_with_bad_key_length(sk: str):
     with pytest.raises(BadKeyLengthError):
         Ed25519Client(sk)

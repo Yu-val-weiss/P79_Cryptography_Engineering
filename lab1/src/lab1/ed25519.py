@@ -1,5 +1,7 @@
 """Ed25519 user-facing implementation"""
 
+from secrets import token_bytes as random
+
 from .ed25519_base import BadKeyLengthError, Ed25519Base
 
 
@@ -11,11 +13,14 @@ class Ed25519Client(Ed25519Base):
 
     type ClientInput = bytes | str
 
-    def __init__(self, secret: ClientInput) -> None:
-        """Initialise client from secret"""
-        self._secret = self._clean_input(secret)
-        if (lens := len(self._secret)) != self.KEY_LEN:
-            raise BadKeyLengthError(self.KEY_LEN, lens)
+    def __init__(self, secret: ClientInput | None) -> None:
+        """Initialise client from some randomly generated secret key, or generate one"""
+        if secret:
+            self._secret = self._clean_input(secret)
+            if (secret_len := len(self._secret)) != self.KEY_LEN:
+                raise BadKeyLengthError(self.KEY_LEN, secret_len)
+        else:
+            self._secret = random(32)
 
         self._public = self._secret_to_public(self._secret)
 
