@@ -206,8 +206,8 @@ class Ed25519Base(abc.ABC):
     def _verify(public: bytes, msg: bytes, signature: bytes) -> bool:
         if (lp := len(public)) != Ed25519Base.KEY_LEN:
             raise BadKeyLengthError(Ed25519Base.KEY_LEN, lp)
-        if (ls := len(signature)) != 64:
-            raise BadSignatureLengthError(64, ls)
+        if (ls := len(signature)) != Ed25519Base.SIG_LEN:
+            raise BadSignatureLengthError(Ed25519Base.SIG_LEN, ls)
 
         A = Ed25519Point.decompress(public)
         if not A:
