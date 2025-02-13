@@ -85,11 +85,6 @@ class X25519Base(abc.ABC):
         return temp[index : index + 2]  # type: ignore
 
     @staticmethod
-    def _mod_mult_inv(x: int) -> int:
-        """Calculate the modular multiplicative inverse"""
-        return pow(x, Curve25519.p - 2, Curve25519.p)
-
-    @staticmethod
     def _compute_x25519_ladder(k_d: DecodeType, u_d: DecodeType) -> int:
         """Compute value of x25519. Source: RFC.
 
@@ -145,7 +140,7 @@ class X25519Base(abc.ABC):
         x_2, x_3 = X25519Base._const_time_swap(x_2, x_3, swap)
         z_2, z_3 = X25519Base._const_time_swap(z_2, z_3, swap)
 
-        return (x_2 * X25519Base._mod_mult_inv(z_2)) % P
+        return (x_2 * Curve25519.mod_mult_inv(z_2)) % P
 
     @staticmethod
     def _point_double(pt_n: UZProjectivePoint):
@@ -161,7 +156,7 @@ class X25519Base(abc.ABC):
         return x_res % P, z_res % P
 
     @staticmethod
-    def _xz_point_diff_add(pt_n: UZProjectivePoint, pt_m: UZProjectivePoint, pt_diff: UZProjectivePoint):
+    def _uz_point_diff_add(pt_n: UZProjectivePoint, pt_m: UZProjectivePoint, pt_diff: UZProjectivePoint):
         """Add the points, given their diff, assuming projective coords.
         Based on https://gist.github.com/nickovs/cc3c22d15f239a2640c185035c06f8a3,
         and the formulae in Martin's tutorial."""
@@ -197,11 +192,11 @@ class X25519Base(abc.ABC):
         for t in reversed(range(X25519Base.BITS + 1)):
             bit = bool(k & (1 << t))
             m_p, m_1_p = X25519Base._const_time_swap(m_p, m_1_p, bit)
-            m_p, m_1_p = X25519Base._point_double(m_p), X25519Base._xz_point_diff_add(m_p, m_1_p, one)
+            m_p, m_1_p = X25519Base._point_double(m_p), X25519Base._uz_point_diff_add(m_p, m_1_p, one)
             m_p, m_1_p = X25519Base._const_time_swap(m_p, m_1_p, bit)
 
         x, z = m_p
-        inv_z = X25519Base._mod_mult_inv(z)
+        inv_z = Curve25519.mod_mult_inv(z)
         res = (x * inv_z) % P
         return X25519Base._encode_u_coordinate(res, to_str=True)
 
