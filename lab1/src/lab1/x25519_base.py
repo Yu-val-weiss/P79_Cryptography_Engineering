@@ -79,10 +79,10 @@ class X25519Base(abc.ABC):
 
     @staticmethod
     def _const_time_swap[T](a: T, b: T, swap: int) -> tuple[T, T]:
-        """Swap two values in constant time. Source: https://gist.github.com/nickovs/cc3c22d15f239a2640c185035c06f8a3."""
+        """Swap two values in constant time. Base: https://gist.github.com/nickovs/cc3c22d15f239a2640c185035c06f8a3."""
         index = int(swap) * 2
         temp = (a, b, b, a)
-        return temp[index : index + 2]  # type: ignore
+        return temp[index], temp[index + 1]
 
     @staticmethod
     def _compute_x25519_ladder(k_d: DecodeType, u_d: DecodeType) -> int:
