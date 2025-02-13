@@ -8,7 +8,7 @@ from .errors import DecodeSizeError
 
 type UZProjectivePoint = tuple[int, int]
 
-type DecodeType = str | list[int] | bytes | int
+type DecodeInput = str | list[int] | bytes | int
 
 
 class X25519Base(abc.ABC):
@@ -23,7 +23,7 @@ class X25519Base(abc.ABC):
         return sum([b[i] << 8 * i for i in range(X25519Base.ALLOWED_LEN)])
 
     @staticmethod
-    def _decode_u_coordinate(u: DecodeType) -> int:
+    def _decode_u_coordinate(u: DecodeInput) -> int:
         """Decode string representation of coordinate."""
         u_list = X25519Base._decode_type_to_list_int(u)
         u_list[-1] &= (1 << (X25519Base.BITS % 8)) - 1
@@ -45,8 +45,8 @@ class X25519Base(abc.ABC):
         return x.hex() if to_str else x
 
     @staticmethod
-    def _decode_type_to_list_int(x: DecodeType) -> list[int]:
-        """Decodes of type decodetype to list int (bytes)"""
+    def _decode_type_to_list_int(x: DecodeInput) -> list[int]:
+        """Decodes of type decodeinput to list int (bytes)"""
         if isinstance(x, str):
             x_list = X25519Base._string_to_bytes(x)
         elif isinstance(x, (bytes, bytearray, memoryview)):
@@ -58,7 +58,7 @@ class X25519Base(abc.ABC):
         return x_list
 
     @staticmethod
-    def _decode_scalar(k: DecodeType):
+    def _decode_scalar(k: DecodeInput):
         """Decodes a scalar into a little endian int, i.e. puts to list of ints (bytes) and clamps."""
         k_list = X25519Base._decode_type_to_list_int(k)
 
@@ -85,7 +85,7 @@ class X25519Base(abc.ABC):
         return temp[index], temp[index + 1]
 
     @staticmethod
-    def _compute_x25519_ladder(k_d: DecodeType, u_d: DecodeType) -> int:
+    def _compute_x25519_ladder(k_d: DecodeInput, u_d: DecodeInput) -> int:
         """Compute value of x25519. Source: RFC.
 
         Args:
@@ -170,7 +170,7 @@ class X25519Base(abc.ABC):
         return u % P, z % P
 
     @staticmethod
-    def _compute_x25519_double_and_add(k_str: DecodeType, u_str: DecodeType) -> str:
+    def _compute_x25519_double_and_add(k_str: DecodeInput, u_str: DecodeInput) -> str:
         """Compute value of x25519. Source: RFC.
 
         Args:
