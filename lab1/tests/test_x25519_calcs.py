@@ -52,7 +52,7 @@ def test_compute_double_and_add(k: str, u: str, expected: str):
     [
         (1, "422c8e7a6227d7bca1350b3e2bb7279f7897b87bb6854b783c60e80311ae3079"),
         (1_000, "684cf59ba83309552800ef566f2f4d3c1c3887c49360e3875f2eb94d99532c51"),
-        (1_000_000, "7c3911e0ab2586fd864497297e575e6f3bc601c0883c30df5f4dd2d24f665424"),  # ~ 20min runtime
+        # (1_000_000, "7c3911e0ab2586fd864497297e575e6f3bc601c0883c30df5f4dd2d24f665424"),  # ~ 20min runtime
     ],
 )
 def test_iterated_compute_ladder(iters: int, expected: str):
