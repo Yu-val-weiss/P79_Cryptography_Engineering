@@ -72,7 +72,7 @@ def test_decode_u_coordinate(u, expected):
     ],
 )
 def test_encode_u_coordinate(u: int, expected: str):
-    assert X25519Base._encode_u_coordinate(u) == expected
+    assert X25519Base._encode_u_coordinate(u, to_str=True) == expected
 
 
 @pytest.mark.parametrize(
@@ -107,7 +107,7 @@ def test_decode_invalid_length():
     ],
 )
 def test_encode_decode_roundtrip(value):
-    encoded = X25519Base._encode_u_coordinate(value)
+    encoded = X25519Base._encode_u_coordinate(value, to_str=False)
     decoded = X25519Base._decode_u_coordinate(encoded)
     assert decoded == value % Curve25519.p
 
@@ -133,7 +133,7 @@ def test_encode_decode_roundtrip(value):
 )
 def test_decode_encode_roundtrip(u: str):
     decoded = X25519Base._decode_u_coordinate(u)
-    encoded = X25519Base._encode_u_coordinate(decoded)
+    encoded = X25519Base._encode_u_coordinate(decoded, to_str=True)
     assert encoded == u
 
 

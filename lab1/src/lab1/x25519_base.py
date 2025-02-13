@@ -35,18 +35,10 @@ class X25519Base(abc.ABC):
 
     @overload
     @staticmethod
-    def _encode_u_coordinate(u: int) -> str: ...
-
-    @overload
-    @staticmethod
     def _encode_u_coordinate(u: int, *, to_str: Literal[False]) -> bytes: ...
 
-    @overload
     @staticmethod
-    def _encode_u_coordinate(u: int, *, to_str: bool) -> str | bytes: ...
-
-    @staticmethod
-    def _encode_u_coordinate(u: int, *, to_str: bool = True) -> str | bytes:
+    def _encode_u_coordinate(u: int, *, to_str: bool) -> str | bytes:
         """Encodes u coordinate into bytes or hex string (if `to_str is True`)."""
         u = u % Curve25519.p
         x = u.to_bytes(length=X25519Base.ALLOWED_LEN, byteorder="little")
@@ -211,7 +203,7 @@ class X25519Base(abc.ABC):
         x, z = m_p
         inv_z = X25519Base._mod_mult_inv(z)
         res = (x * inv_z) % P
-        return X25519Base._encode_u_coordinate(res)
+        return X25519Base._encode_u_coordinate(res, to_str=True)
 
     @abc.abstractmethod
     def __init__(self) -> None:

@@ -2,6 +2,7 @@
 
 import pytest
 from src.lab1.x25519_base import X25519Base
+from tqdm import tqdm
 
 
 @pytest.mark.parametrize(
@@ -24,7 +25,7 @@ def test_compute_ladder(k_str: str, u_str: str, expected: str):
     u = X25519Base._decode_u_coordinate(u_str)
     res = X25519Base._compute_x25519_ladder(k, u)
 
-    assert X25519Base._encode_u_coordinate(res) == expected
+    assert X25519Base._encode_u_coordinate(res, to_str=True) == expected
 
 
 @pytest.mark.parametrize(
@@ -51,17 +52,17 @@ def test_compute_double_and_add(k: str, u: str, expected: str):
     [
         (1, "422c8e7a6227d7bca1350b3e2bb7279f7897b87bb6854b783c60e80311ae3079"),
         (1_000, "684cf59ba83309552800ef566f2f4d3c1c3887c49360e3875f2eb94d99532c51"),
-        # (1_000_000, "7c3911e0ab2586fd864497297e575e6f3bc601c0883c30df5f4dd2d24f665424"),  # slow-running
+        (1_000_000, "7c3911e0ab2586fd864497297e575e6f3bc601c0883c30df5f4dd2d24f665424"),  # ~ 20min runtime
     ],
 )
 def test_iterated_compute_ladder(iters: int, expected: str):
-    k = "0900000000000000000000000000000000000000000000000000000000000000"
-    u = "0900000000000000000000000000000000000000000000000000000000000000"
+    k = bytes.fromhex("0900000000000000000000000000000000000000000000000000000000000000")
+    u = bytes.fromhex("0900000000000000000000000000000000000000000000000000000000000000")
 
-    for _ in range(iters):
+    for _ in tqdm(range(iters)):
         old_k = k
         res = X25519Base._compute_x25519_ladder(k, u)
-        k = X25519Base._encode_u_coordinate(res)
+        k = X25519Base._encode_u_coordinate(res, to_str=False)
         u = old_k
 
-    assert k == expected
+    assert k.hex() == expected

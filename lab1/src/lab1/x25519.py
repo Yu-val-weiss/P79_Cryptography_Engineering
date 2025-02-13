@@ -29,7 +29,7 @@ class X25519Client(X25519Base):
 
         # derive public key
         self._public = self._compute_x25519_ladder(self._private, base_point_u)
-        self._public_hex_str = self._encode_u_coordinate(self._public)
+        self._public_hex_str = self._encode_u_coordinate(self._public, to_str=True)
 
     @property
     def public(self) -> Key:

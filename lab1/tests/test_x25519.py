@@ -43,8 +43,8 @@ def test_shared_secret(sk_1: str, sk_2: str, exp: str):
     x_shared = x.compute_shared_secret(y.public)
     y_shared = y.compute_shared_secret(x.public)
 
-    assert x._encode_u_coordinate(x_shared) == exp
-    assert y._encode_u_coordinate(y_shared) == exp
+    assert x._encode_u_coordinate(x_shared, to_str=True) == exp
+    assert y._encode_u_coordinate(y_shared, to_str=True) == exp
 
 
 @pytest.mark.parametrize(
@@ -82,7 +82,7 @@ def test_wycheproof(private: str, public: str, shared: str):
     x = X25519Client(private)
     shared_secret = x.compute_shared_secret(public)
 
-    assert X25519Client._encode_u_coordinate(shared_secret) == shared
+    assert X25519Client._encode_u_coordinate(shared_secret, to_str=True) == shared
 
     if shared == "00" * 32:
         with pytest.raises(ZeroSharedSecret):
