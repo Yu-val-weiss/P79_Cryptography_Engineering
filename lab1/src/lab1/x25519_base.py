@@ -147,13 +147,13 @@ class X25519Base(abc.ABC):
         """Double point, assuming projective coords. Based on https://gist.github.com/nickovs/cc3c22d15f239a2640c185035c06f8a3."""
         P = Curve25519.p
 
-        x, z = pt_n
-        xx = x**2
-        zz = z**2
-        x_res = (xx - zz) ** 2
-        xz = x * z
-        z_res = 4 * xz * (xx + Curve25519.A * xz + zz)
-        return x_res % P, z_res % P
+        u, z = pt_n
+        uu = pow(u, 2, P)
+        zz = pow(z, 2, P)
+        u_res = (uu - zz) ** 2
+        uz = u * z
+        z_res = 4 * uz * (uu + Curve25519.A * uz + zz)
+        return u_res % P, z_res % P
 
     @staticmethod
     def _uz_point_diff_add(pt_n: UZProjectivePoint, pt_m: UZProjectivePoint, pt_diff: UZProjectivePoint):
@@ -162,12 +162,12 @@ class X25519Base(abc.ABC):
         and the formulae in Martin's tutorial."""
         P = Curve25519.p
 
-        x_n, z_n = pt_n
-        x_m, z_m = pt_m
-        x_d, z_d = pt_diff
-        x = (z_d << 2) * (x_m * x_n - z_m * z_n) ** 2
-        z = (x_d << 2) * (x_m * z_n - z_m * x_n) ** 2
-        return x % P, z % P
+        u_n, z_n = pt_n
+        u_m, z_m = pt_m
+        u_d, z_d = pt_diff
+        u = (z_d << 2) * pow((u_m * u_n - z_m * z_n), 2, P)
+        z = (u_d << 2) * pow((u_m * z_n - z_m * u_n), 2, P)
+        return u % P, z % P
 
     @staticmethod
     def _compute_x25519_double_and_add(k_str: DecodeType, u_str: DecodeType) -> str:
