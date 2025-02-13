@@ -25,7 +25,7 @@ class X25519Base(abc.ABC):
     @staticmethod
     def _decode_u_coordinate(u: DecodeInput) -> int:
         """Decode string representation of coordinate."""
-        u_list = X25519Base._decode_type_to_list_int(u)
+        u_list = X25519Base._decode_input_to_list_int(u)
         u_list[-1] &= (1 << (X25519Base.BITS % 8)) - 1
         return X25519Base._decode_little_endian(u_list)
 
@@ -45,22 +45,22 @@ class X25519Base(abc.ABC):
         return x.hex() if to_str else x
 
     @staticmethod
-    def _decode_type_to_list_int(x: DecodeInput) -> list[int]:
+    def _decode_input_to_list_int(x: DecodeInput) -> list[int]:
         """Decodes of type decodeinput to list int (bytes)"""
         if isinstance(x, str):
             x_list = X25519Base._string_to_bytes(x)
-        elif isinstance(x, (bytes, bytearray, memoryview)):
-            x_list = list(x)
+        elif isinstance(x, list):
+            x_list = [z & 0xFF for z in x]
         elif isinstance(x, int):
             x_list = list(x.to_bytes(length=X25519Base.ALLOWED_LEN, byteorder="little"))
         else:
-            x_list = [z & 0xFF for z in x]
+            x_list = list(x)  # x is byte array
         return x_list
 
     @staticmethod
     def _decode_scalar(k: DecodeInput):
         """Decodes a scalar into a little endian int, i.e. puts to list of ints (bytes) and clamps."""
-        k_list = X25519Base._decode_type_to_list_int(k)
+        k_list = X25519Base._decode_input_to_list_int(k)
 
         # clamp bytes
         k_list[0] &= 248
