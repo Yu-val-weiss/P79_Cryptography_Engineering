@@ -5,6 +5,7 @@
 ```text
 .
 ├── src/lab1             
+│   ├── ed25519_base.py             # Dataclass for curve25519, containing curve constants
 │   ├── ed25519_base.py             # Base class for ed25519, containing calculation primitives; curve point arithmetic 
 │   ├── ed25519.py                  # User-facing API class for ed25519, wrapping the calculations into a clean class
 │   ├── errors.py                   # Various error/exception classes
