@@ -129,7 +129,7 @@ class Ed25519Point:
         z_inv = Curve25519.mod_mult_inv(self.Z)
         x = self.X * z_inv % Curve25519.p  # equivalent to X / Z
         y = self.Y * z_inv % Curve25519.p
-        return (y | ((x & 1) << 255)).to_bytes(Ed25519Base.KEY_LEN, "little")
+        return (y | ((x & 1) << 255)).to_bytes(Ed25519Base.KEY_LEN, Ed25519Base.BYTE_ORDER)
 
     @classmethod
     def decompress(cls, s: bytes) -> "Ed25519Point | None":
@@ -137,7 +137,7 @@ class Ed25519Point:
         if len(s) != Ed25519Base.KEY_LEN:
             raise DecompressionError(Ed25519Base.KEY_LEN, len(s))
 
-        y = int.from_bytes(s, "little")
+        y = int.from_bytes(s, Ed25519Base.BYTE_ORDER)
 
         sign = y >> 255
         y &= (1 << 255) - 1
@@ -155,9 +155,9 @@ class Ed25519Base(abc.ABC):
     # Square root of -1
     modp_sqrt_m1 = pow(2, (Curve25519.p - 1) // 4, Curve25519.p)
 
-    # "re-export" for Ed25519Client to keep imports clean
     KEY_LEN = 32
     SIG_LEN = 64
+    BYTE_ORDER = "little"
 
     @staticmethod
     def _sha512(s: bytes):
@@ -165,7 +165,7 @@ class Ed25519Base(abc.ABC):
 
     @staticmethod
     def _sha512_mod_q(s: bytes) -> int:
-        return int.from_bytes(Ed25519Base._sha512(s), "little") % Curve25519.q
+        return int.from_bytes(Ed25519Base._sha512(s), Ed25519Base.BYTE_ORDER) % Curve25519.q
 
     @staticmethod
     def _secret_expand(secret: bytes) -> tuple[int, bytes]:
@@ -173,7 +173,7 @@ class Ed25519Base(abc.ABC):
         if len(secret) != Ed25519Base.KEY_LEN:
             raise BadKeyLengthError(Ed25519Base.KEY_LEN, len(secret))
         h = Ed25519Base._sha512(secret)
-        a = int.from_bytes(h[: Ed25519Base.KEY_LEN], "little")
+        a = int.from_bytes(h[: Ed25519Base.KEY_LEN], Ed25519Base.BYTE_ORDER)
         a &= (1 << 254) - 8
         a |= 1 << 254
         return (a, h[Ed25519Base.KEY_LEN :])
@@ -199,7 +199,7 @@ class Ed25519Base(abc.ABC):
 
         t = (r + k * s) % Curve25519.q
 
-        return R + int.to_bytes(t, Ed25519Base.KEY_LEN, "little")
+        return R + int.to_bytes(t, Ed25519Base.KEY_LEN, Ed25519Base.BYTE_ORDER)
 
     ## And finally the verification function.
     @staticmethod
@@ -218,7 +218,7 @@ class Ed25519Base(abc.ABC):
         if not R:
             return False
 
-        t = int.from_bytes(signature[Ed25519Base.KEY_LEN :], "little")
+        t = int.from_bytes(signature[Ed25519Base.KEY_LEN :], Ed25519Base.BYTE_ORDER)
         if t >= Curve25519.q:
             return False
         # so by definition t = t_bits % q

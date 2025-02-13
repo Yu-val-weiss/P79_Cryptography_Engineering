@@ -16,6 +16,7 @@ class X25519Base(abc.ABC):
 
     BITS = 255
     ALLOWED_LEN = 32
+    BYTE_ORDER = "little"
 
     @staticmethod
     def _decode_little_endian(b: bytes | Sequence[int]):
@@ -41,7 +42,7 @@ class X25519Base(abc.ABC):
     def _encode_u_coordinate(u: int, *, to_str: bool) -> str | bytes:
         """Encodes u coordinate into bytes or hex string (if `to_str is True`)."""
         u = u % Curve25519.p
-        x = u.to_bytes(length=X25519Base.ALLOWED_LEN, byteorder="little")
+        x = u.to_bytes(X25519Base.ALLOWED_LEN, X25519Base.BYTE_ORDER)
         return x.hex() if to_str else x
 
     @staticmethod
@@ -52,7 +53,7 @@ class X25519Base(abc.ABC):
         elif isinstance(x, list):
             x_list = [z & 0xFF for z in x]
         elif isinstance(x, int):
-            x_list = list(x.to_bytes(length=X25519Base.ALLOWED_LEN, byteorder="little"))
+            x_list = list(x.to_bytes(X25519Base.ALLOWED_LEN, X25519Base.BYTE_ORDER))
         else:
             x_list = list(x)  # x is byte array
         return x_list
