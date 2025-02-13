@@ -1,7 +1,7 @@
 import pytest
 from src.lab1.curve25519 import Curve25519
 from src.lab1.errors import DecodeSizeError
-from src.lab1.x25519_base import X25519Base, XZProjectivePoint
+from src.lab1.x25519_base import UZProjectivePoint, X25519Base
 
 
 @pytest.mark.parametrize(
@@ -210,8 +210,8 @@ def test_cannot_init_x25519base():
         ),
     ],
 )
-def test_double(u_str: str, expected: XZProjectivePoint):
+def test_double(u_str: str, expected: UZProjectivePoint):
     u = X25519Base._decode_u_coordinate(u_str)
-    u_p: XZProjectivePoint = (u, 1)
+    u_p: UZProjectivePoint = (u, 1)
     doubled = X25519Base._point_double(u_p)
     assert doubled == expected

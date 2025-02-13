@@ -6,7 +6,7 @@ from typing import Literal, Sequence, overload
 from .curve25519 import Curve25519
 from .errors import DecodeSizeError
 
-type XZProjectivePoint = tuple[int, int]
+type UZProjectivePoint = tuple[int, int]
 
 type DecodeType = str | list[int] | bytes | int
 
@@ -148,7 +148,7 @@ class X25519Base(abc.ABC):
         return (x_2 * X25519Base._mod_mult_inv(z_2)) % P
 
     @staticmethod
-    def _point_double(pt_n: XZProjectivePoint):
+    def _point_double(pt_n: UZProjectivePoint):
         """Double point, assuming projective coords. Based on https://gist.github.com/nickovs/cc3c22d15f239a2640c185035c06f8a3."""
         P = Curve25519.p
 
@@ -161,7 +161,7 @@ class X25519Base(abc.ABC):
         return x_res % P, z_res % P
 
     @staticmethod
-    def _xz_point_diff_add(pt_n: XZProjectivePoint, pt_m: XZProjectivePoint, pt_diff: XZProjectivePoint):
+    def _xz_point_diff_add(pt_n: UZProjectivePoint, pt_m: UZProjectivePoint, pt_diff: UZProjectivePoint):
         """Add the points, given their diff, assuming projective coords.
         Based on https://gist.github.com/nickovs/cc3c22d15f239a2640c185035c06f8a3,
         and the formulae in Martin's tutorial."""
@@ -190,8 +190,8 @@ class X25519Base(abc.ABC):
 
         P = Curve25519.p
 
-        zero: XZProjectivePoint = (1, 0)
-        one: XZProjectivePoint = (u, 1)
+        zero: UZProjectivePoint = (1, 0)
+        one: UZProjectivePoint = (u, 1)
         m_p, m_1_p = zero, one
 
         for t in reversed(range(X25519Base.BITS + 1)):
