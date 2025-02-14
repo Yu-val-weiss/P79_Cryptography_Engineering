@@ -1,7 +1,7 @@
 """Implementation for X25519's base class."""
 
 import abc
-from typing import Literal, Sequence, overload
+from typing import Final, Literal, Sequence, overload
 
 from .curve25519 import Curve25519
 from .errors import DecodeSizeError
@@ -14,9 +14,9 @@ type DecodeInput = str | list[int] | bytes | int
 class X25519Base(abc.ABC):
     """Implements X25519"""
 
-    BITS = 255
-    ALLOWED_LEN = 32
-    BYTE_ORDER = "little"
+    BITS: Final = 255
+    ALLOWED_LEN: Final = 32
+    BYTE_ORDER: Literal["little"] = "little"
 
     @staticmethod
     def _decode_little_endian(b: bytes | Sequence[int]):

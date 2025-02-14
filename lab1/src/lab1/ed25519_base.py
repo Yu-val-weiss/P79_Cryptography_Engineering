@@ -2,7 +2,7 @@
 
 import abc
 import hashlib
-from typing import cast
+from typing import Final, Literal, cast
 
 from .curve25519 import Curve25519
 from .errors import BadKeyLengthError, BadSignatureLengthError, DecompressionError
@@ -155,9 +155,9 @@ class Ed25519Base(abc.ABC):
     # Square root of -1
     modp_sqrt_m1 = pow(2, (Curve25519.p - 1) // 4, Curve25519.p)
 
-    KEY_LEN = 32
-    SIG_LEN = 64
-    BYTE_ORDER = "little"
+    KEY_LEN: Final = 32
+    SIG_LEN: Final = 64
+    BYTE_ORDER: Literal["little"] = "little"
 
     @staticmethod
     def _sha512(s: bytes):
