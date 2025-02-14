@@ -10,7 +10,7 @@ class X25519Client(X25519Base):
     """Concrete client-facing implementation of Diffie-Hellman using Curve25519"""
 
     type Key = str
-    BASE_POINT_U = "09" + 31 * "00"
+    BASE_POINT_U = X25519Base._decode_u_coordinate("09" + 31 * "00")
 
     _private: int
     _public: int
@@ -22,10 +22,8 @@ class X25519Client(X25519Base):
             secret = random(self.ALLOWED_LEN)
         self._private = self._decode_scalar(secret)
 
-        base_point_u = self._decode_u_coordinate(self.BASE_POINT_U)
-
         # derive public key
-        self._public = self._compute_x25519_ladder(self._private, base_point_u)
+        self._public = self._compute_x25519_ladder(self._private, self.BASE_POINT_U)
         self._public_hex_str = self._encode_u_coordinate(self._public, to_str=True)
 
     @property
