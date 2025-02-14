@@ -88,10 +88,27 @@ def test_decode_little_endian(u):
 
 
 def test_decode_invalid_length():
+    # str
     with pytest.raises(DecodeSizeError):
-        X25519Base._string_to_bytes("ab" * 16)  # Too short (16 bytes)
+        X25519Base._decode_input_to_list_int("ab" * 16)  # Too short (16 bytes)
     with pytest.raises(DecodeSizeError):
-        X25519Base._string_to_bytes("ab" * 33)  # Too long (33 bytes)
+        X25519Base._decode_input_to_list_int("ab" * 33)  # Too long (33 bytes)
+
+    # list [int]
+    with pytest.raises(DecodeSizeError):
+        X25519Base._decode_input_to_list_int([19] * 16)
+    with pytest.raises(DecodeSizeError):
+        X25519Base._decode_input_to_list_int([19] * 33)
+
+    # bytes
+    with pytest.raises(DecodeSizeError):
+        X25519Base._decode_input_to_list_int(bytes.fromhex("ab" * 16))
+    with pytest.raises(DecodeSizeError):
+        X25519Base._decode_input_to_list_int(bytes.fromhex("ab" * 33))
+
+    # int
+    with pytest.raises(DecodeSizeError):
+        X25519Base._decode_input_to_list_int(1 << (8 * 33))  # too big
 
 
 @pytest.mark.parametrize(

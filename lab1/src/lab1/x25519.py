@@ -2,7 +2,7 @@
 
 from secrets import token_bytes as random
 
-from .errors import DecodeSizeError, ZeroSharedSecret
+from .errors import ZeroSharedSecret
 from .x25519_base import DecodeInput, X25519Base
 
 
@@ -20,10 +20,7 @@ class X25519Client(X25519Base):
         """Initialise from secret hex string or bytes or list[int], or if None use secure random"""
         if secret is None:
             secret = random(self.ALLOWED_LEN)
-        try:
-            self._private = self._decode_scalar(secret)
-        except DecodeSizeError as e:
-            raise e
+        self._private = self._decode_scalar(secret)
 
         base_point_u = self._decode_u_coordinate(self.BASE_POINT_U)
 

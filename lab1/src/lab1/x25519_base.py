@@ -25,7 +25,9 @@ class X25519Base(abc.ABC):
 
     @staticmethod
     def _decode_u_coordinate(u: DecodeInput) -> int:
-        """Decode string representation of coordinate."""
+        """Decode string representation of coordinate.
+
+        Raises `DecodeSizeError` if input is invalid."""
         u_list = X25519Base._decode_input_to_list_int(u)
         u_list[-1] &= (1 << (X25519Base.BITS % 8)) - 1
         return X25519Base._decode_little_endian(u_list)
@@ -48,19 +50,36 @@ class X25519Base(abc.ABC):
     @staticmethod
     def _decode_input_to_list_int(x: DecodeInput) -> list[int]:
         """Decodes of type decodeinput to list int (bytes)"""
+
+        def validate_length(c: bytes | list) -> None:
+            length = len(c)
+            if length != X25519Base.ALLOWED_LEN:
+                raise DecodeSizeError(X25519Base.ALLOWED_LEN, length)
+
         if isinstance(x, str):
-            x_list = X25519Base._string_to_bytes(x)
-        elif isinstance(x, list):
-            x_list = [z & 0xFF for z in x]
-        elif isinstance(x, int):
-            x_list = list(x.to_bytes(X25519Base.ALLOWED_LEN, X25519Base.BYTE_ORDER))
-        else:
-            x_list = list(x)  # x is byte array
-        return x_list
+            bs = bytes.fromhex(x)
+            validate_length(bs)
+            return list(bs)
+
+        if isinstance(x, list):
+            validate_length(x)
+            return [z & 0xFF for z in x]
+
+        if isinstance(x, int):
+            try:
+                return list(x.to_bytes(X25519Base.ALLOWED_LEN, X25519Base.BYTE_ORDER))
+            except OverflowError as e:
+                raise DecodeSizeError(X25519Base.ALLOWED_LEN, (x.bit_length() + 7) // 8) from e
+
+        # x must be bytes
+        validate_length(x)
+        return list(x)
 
     @staticmethod
-    def _decode_scalar(k: DecodeInput):
-        """Decodes a scalar into a little endian int, i.e. puts to list of ints (bytes) and clamps."""
+    def _decode_scalar(k: DecodeInput) -> int:
+        """Decodes a scalar into a little endian int, i.e. puts to list of ints (bytes) and clamps.
+
+        Raises `DecodeSizeError` if input has invalid length."""
         k_list = X25519Base._decode_input_to_list_int(k)
 
         # clamp bytes
@@ -69,14 +88,6 @@ class X25519Base(abc.ABC):
         k_list[31] |= 64
 
         return X25519Base._decode_little_endian(k_list)
-
-    @staticmethod
-    def _string_to_bytes(k: str) -> list[int]:
-        """Decodes a hex string into a list of ints (list of bytes)."""
-        bs = bytes.fromhex(k)
-        if (lbs := len(bs)) != X25519Base.ALLOWED_LEN:
-            raise DecodeSizeError(X25519Base.ALLOWED_LEN, lbs)
-        return list(bs)
 
     @staticmethod
     def _const_time_swap[T](a: T, b: T, swap: int) -> tuple[T, T]:
