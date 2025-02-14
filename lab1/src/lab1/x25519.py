@@ -36,7 +36,7 @@ class X25519Client(X25519Base):
         """Getter for public key"""
         return self._public_hex_str
 
-    def compute_shared_secret(self, other_pk: Key, *, abort_if_zero: bool = False):
+    def compute_shared_secret(self, other_pk: Key, *, abort_if_zero: bool = False) -> int:
         """Compute shared secret from other's public key"""
         shared_secret = self._compute_x25519_ladder(self._private, other_pk)
         if abort_if_zero and shared_secret == 0:
