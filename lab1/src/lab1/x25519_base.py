@@ -50,11 +50,11 @@ class X25519Base(abc.ABC):
     @staticmethod
     def _decode_input_to_list_int(x: DecodeInput) -> list[int]:
         """Decodes of type decodeinput to list int (bytes)"""
+        ALLOWED_LEN = X25519Base.ALLOWED_LEN
 
-        def validate_length(c: bytes | list) -> None:
-            length = len(c)
-            if length != X25519Base.ALLOWED_LEN:
-                raise DecodeSizeError(X25519Base.ALLOWED_LEN, length)
+        def validate_length(c: bytes | list[int]) -> None:
+            if (length := len(c)) != ALLOWED_LEN:
+                raise DecodeSizeError(ALLOWED_LEN, length)
 
         if isinstance(x, str):
             bs = bytes.fromhex(x)
@@ -67,9 +67,9 @@ class X25519Base(abc.ABC):
 
         if isinstance(x, int):
             try:
-                return list(x.to_bytes(X25519Base.ALLOWED_LEN, X25519Base.BYTE_ORDER))
+                return list(x.to_bytes(ALLOWED_LEN, X25519Base.BYTE_ORDER))
             except OverflowError as e:
-                raise DecodeSizeError(X25519Base.ALLOWED_LEN, (x.bit_length() + 7) // 8) from e
+                raise DecodeSizeError(ALLOWED_LEN, (x.bit_length() + 7) // 8) from e
 
         # x must be bytes
         validate_length(x)
