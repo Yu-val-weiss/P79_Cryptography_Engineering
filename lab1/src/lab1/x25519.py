@@ -3,7 +3,7 @@
 from secrets import token_bytes as random
 
 from .errors import DecodeSizeError, ZeroSharedSecret
-from .x25519_base import X25519Base
+from .x25519_base import DecodeInput, X25519Base
 
 
 class X25519Client(X25519Base):
@@ -16,7 +16,7 @@ class X25519Client(X25519Base):
     _public: int
     _public_hex_str: Key
 
-    def __init__(self, secret: str | bytes | list[int] | None = None) -> None:
+    def __init__(self, secret: DecodeInput | None = None) -> None:
         """Initialise from secret hex string or bytes or list[int], or if None use secure random"""
         if secret is None:
             secret = random(self.ALLOWED_LEN)
