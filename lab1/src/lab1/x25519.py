@@ -3,6 +3,7 @@
 from secrets import token_bytes as random
 
 from .errors import ZeroSharedSecret
+from .limiter import CallLimiter
 from .x25519_base import DecodeInput, X25519Base
 
 
@@ -31,6 +32,7 @@ class X25519Client(X25519Base):
         """Getter for public key"""
         return self._public_hex_str
 
+    @CallLimiter(1)
     def compute_shared_secret(self, other_pk: Key, *, abort_if_zero: bool = False) -> int:
         """Compute shared secret from other's public key"""
         shared_secret = self._compute_x25519_ladder(self._private, other_pk)
