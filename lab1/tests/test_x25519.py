@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from nacl.utils import random
 from src.lab1.errors import DecodeSizeError, ZeroSharedSecret
+from src.lab1.invalidation import CallLimiter
 from src.lab1.x25519 import X25519Client
 
 
@@ -80,13 +81,14 @@ def test_wycheproof(private: str, public: str, shared: str):
     """Source for these tests: https://github.com/C2SP/wycheproof/blob/master/testvectors/x25519_test.json."""
 
     x = X25519Client(private)
-    shared_secret = x.compute_shared_secret(public)
+    with CallLimiter.disable_call_limit(x.compute_shared_secret):
+        shared_secret = x.compute_shared_secret(public)
 
-    assert X25519Client._encode_u_coordinate(shared_secret, to_str=True) == shared
+        assert X25519Client._encode_u_coordinate(shared_secret, to_str=True) == shared
 
-    if shared == "00" * 32:
-        with pytest.raises(ZeroSharedSecret):
-            x.compute_shared_secret(public, abort_if_zero=True)
+        if shared == "00" * 32:
+            with pytest.raises(ZeroSharedSecret):
+                x.compute_shared_secret(public, abort_if_zero=True)
 
 
 @pytest.mark.parametrize("private", ["ab" * i for i in chain(range(32), range(33, 50))])
