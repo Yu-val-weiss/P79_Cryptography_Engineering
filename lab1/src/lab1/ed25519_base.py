@@ -174,9 +174,9 @@ class Ed25519Base(abc.ABC):
         G = Ed25519Point.base_point()
         return Ed25519Point.compress(a * G)
 
-    ## The signature function works as below.
     @staticmethod
     def _sign(secret: bytes, msg: bytes) -> bytes:
+        """Signature generating function"""
         s, prefix = Ed25519Base._secret_expand(secret)
 
         B = Ed25519Point.base_point()
@@ -191,9 +191,9 @@ class Ed25519Base(abc.ABC):
 
         return R + int.to_bytes(t, Ed25519Base.KEY_LEN, Ed25519Base.BYTE_ORDER)
 
-    ## And finally the verification function.
     @staticmethod
     def _verify(public: bytes, msg: bytes, signature: bytes) -> bool:
+        """Signature verification function"""
         if (lp := len(public)) != Ed25519Base.KEY_LEN:
             raise BadKeyLengthError(Ed25519Base.KEY_LEN, lp)
         if (ls := len(signature)) != Ed25519Base.SIG_LEN:
