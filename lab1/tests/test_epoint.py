@@ -18,7 +18,12 @@ def random_points_generator(num: int):
 @pytest.mark.parametrize("pt", random_points_generator(50))
 def test_scalar_equals_add(pt: Ed25519Point):
     mul = randint(2, 10)
-    assert mul * pt == sum([pt for _ in range(mul - 1)], start=pt)  # type: ignore
+    assert mul * pt == sum([pt for _ in range(mul - 1)], start=pt)
+
+
+@pytest.mark.parametrize("pt", random_points_generator(50))
+def test_double_equals_add(pt: Ed25519Point):
+    assert pt.double() == pt + pt
 
 
 def test_invalid_decompress():

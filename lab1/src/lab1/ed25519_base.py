@@ -55,6 +55,19 @@ class Ed25519Point:
         E, F, G, H = B - A, D - C, D + C, B + A
         return Ed25519Point(E * F, G * H, F * G, E * H)
 
+    def double(self) -> "Ed25519Point":
+        """Double point p, to save a few operations."""
+        A = pow(self.X, 2, Curve25519.p)
+        B = pow(self.Y, 2, Curve25519.p)
+        C = 2 * pow(self.Z, 2, Curve25519.p)
+        H = A + B % Curve25519.p
+        E = H - pow((self.X + self.Y), 2, Curve25519.p)
+        G = A - B % Curve25519.p
+        F = C + G % Curve25519.p
+        return Ed25519Point(
+            E * F % Curve25519.p, G * H % Curve25519.p, F * G % Curve25519.p, E * H % Curve25519.p
+        )
+
     def __mul__(self, s: int) -> "Ed25519Point":
         """Multiply by a scalar, `s`"""
         P = self
@@ -62,7 +75,7 @@ class Ed25519Point:
         while s > 0:
             if s & 1:
                 Q += P
-            P += P
+            P = P.double()
             s >>= 1
         return Q
 
