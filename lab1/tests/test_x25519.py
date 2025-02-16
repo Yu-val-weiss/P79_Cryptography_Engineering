@@ -1,9 +1,9 @@
 import json
 from itertools import chain
 from pathlib import Path
+from secrets import token_bytes as random
 
 import pytest
-from nacl.utils import random
 from src.lab1.errors import DecodeSizeError, ZeroSharedSecret
 from src.lab1.x25519 import X25519Client
 
