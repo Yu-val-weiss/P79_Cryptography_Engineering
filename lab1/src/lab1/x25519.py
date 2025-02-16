@@ -1,6 +1,6 @@
 """Client for X25519 diffie-Hellman implementation"""
 
-from secrets import token_bytes as random
+from secrets import token_bytes as random_bytes
 
 from .errors import ZeroSharedSecret
 from .x25519_base import DecodeInput, X25519Base
@@ -19,7 +19,7 @@ class X25519Client(X25519Base):
     def __init__(self, secret: DecodeInput | None = None) -> None:
         """Initialise from secret hex string or bytes or list[int], or if None use secure random"""
         if secret is None:
-            secret = random(self.ALLOWED_LEN)
+            secret = random_bytes(self.ALLOWED_LEN)
         self._private = self._decode_scalar(secret)
 
         # derive public key

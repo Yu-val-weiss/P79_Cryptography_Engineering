@@ -1,7 +1,7 @@
 import json
 from itertools import chain
 from pathlib import Path
-from secrets import token_bytes as random
+from secrets import token_bytes as random_bytes
 
 import pytest
 from src.lab1.errors import DecodeSizeError, ZeroSharedSecret
@@ -49,7 +49,7 @@ def test_shared_secret(sk_1: str, sk_2: str, exp: str):
 
 @pytest.mark.parametrize(
     "sk_1,sk_2",
-    [(random(32).hex(), random(32).hex()) for _ in range(100)],
+    [(random_bytes(32).hex(), random_bytes(32).hex()) for _ in range(100)],
 )
 def test_shared_secret_randomised(sk_1: str, sk_2: str):
     x = X25519Client(sk_1)

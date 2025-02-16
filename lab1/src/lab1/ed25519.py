@@ -1,6 +1,6 @@
 """Ed25519 user-facing implementation"""
 
-from secrets import token_bytes as random
+from secrets import token_bytes as random_bytes
 
 from .ed25519_base import BadKeyLengthError, Ed25519Base
 
@@ -20,7 +20,7 @@ class Ed25519Client(Ed25519Base):
             if (secret_len := len(self._secret)) != self.KEY_LEN:
                 raise BadKeyLengthError(self.KEY_LEN, secret_len)
         else:
-            self._secret = random(32)
+            self._secret = random_bytes(32)
 
         self._public = self._secret_to_public(self._secret)
 
