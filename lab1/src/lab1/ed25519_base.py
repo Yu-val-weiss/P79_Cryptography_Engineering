@@ -104,10 +104,7 @@ class Ed25519Point:
             return None
         x2 = (y * y - 1) * Curve25519.mod_mult_inv(Curve25519.d * y * y + 1)
         if x2 == 0:
-            if sign:
-                return None
-            else:
-                return 0
+            return None if sign else 0
 
         # Compute square root of x2
         x = pow(x2, (Curve25519.p + 3) // 8, Curve25519.p)
@@ -118,9 +115,7 @@ class Ed25519Point:
         if (x * x - x2) % Curve25519.p != 0:
             return None
 
-        if (x & 1) != sign:
-            x = Curve25519.p - x
-        return x
+        return x if x & 1 == sign else Curve25519.p - x
 
     def compress(self) -> bytes:
         """Compress point to byte representation"""
@@ -141,10 +136,7 @@ class Ed25519Point:
         y &= (1 << 255) - 1
 
         x = cls.recover_x(y, sign)
-        if x is None:
-            return None
-        else:
-            return cls(x, y, 1, x * y % Curve25519.p)
+        return cls(x, y, 1, x * y % Curve25519.p) if x else None
 
 
 class Ed25519Base(abc.ABC):
