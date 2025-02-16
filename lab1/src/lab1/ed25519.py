@@ -26,9 +26,7 @@ class Ed25519Client(Ed25519Base):
 
     @staticmethod
     def _clean_input(data: ClientInput) -> bytes:
-        if isinstance(data, str):
-            return bytes.fromhex(data)
-        return data
+        return bytes.fromhex(data) if isinstance(data, str) else data
 
     @property
     def public(self):
