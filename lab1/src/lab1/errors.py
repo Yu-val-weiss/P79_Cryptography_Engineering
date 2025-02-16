@@ -41,3 +41,7 @@ class DecodeSizeError(BadLengthError):
 
 class ZeroSharedSecret(ValueError):
     """Shared secret was zero"""
+
+    def __init__(self) -> None:
+        """init method"""
+        super().__init__("Shared secret was 0, aborting!")

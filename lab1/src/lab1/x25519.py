@@ -35,5 +35,5 @@ class X25519Client(X25519Base):
         """Compute shared secret from other's public key"""
         shared_secret = self._compute_x25519_ladder(self._private, other_pk)
         if abort_if_zero and shared_secret == 0:
-            raise ZeroSharedSecret("Shared secret was 0, aborting!")
+            raise ZeroSharedSecret()
         return shared_secret
