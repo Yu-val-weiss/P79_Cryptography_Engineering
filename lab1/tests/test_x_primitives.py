@@ -108,7 +108,7 @@ def test_decode_invalid_length():
 
     # int
     with pytest.raises(DecodeSizeError):
-        X25519Base._decode_input_to_list_int(1 << (8 * 33))  # too big
+        X25519Base._decode_input_to_list_int(0x80 << (8 * 32))  # too big
 
 
 @pytest.mark.parametrize(
