@@ -46,7 +46,7 @@ class Ed25519Point:
 
     # point operations
     def __add__(self, Q: "Ed25519Point") -> "Ed25519Point":
-        """Add operator"""
+        """Add operator for Ed25519Points"""
         A, B = (
             (self.Y - self.X) * (Q.Y - Q.X) % Curve25519.p,
             (self.Y + self.X) * (Q.Y + Q.X) % Curve25519.p,
