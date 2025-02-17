@@ -1,8 +1,0 @@
-"""Runners for lab1"""
-
-from src.lab1.curve25519 import Curve25519
-
-if __name__ == "__main__":
-    assert Curve25519.d == 37095705934669439343138083508754565189542113879843219016388785533085940283555
-
-    assert Curve25519.q == 2**252 + 0x14DEF9DEA2F79CD65812631A5CF5D3ED

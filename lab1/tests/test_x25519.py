@@ -4,6 +4,7 @@ from pathlib import Path
 from secrets import token_bytes as random_bytes
 
 import pytest
+from src.lab1.curve25519 import Curve25519
 from src.lab1.errors import DecodeSizeError, ZeroSharedSecret
 from src.lab1.x25519 import X25519Client
 
@@ -104,3 +105,8 @@ def test_size_error(private: str):
 )
 def test_edge_cases(private: str):
     _ = X25519Client(private)
+
+
+def test_client_random_intialise():
+    x = X25519Client()
+    assert 0 < x._private < Curve25519.p

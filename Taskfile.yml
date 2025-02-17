@@ -62,3 +62,12 @@ tasks:
     dir: "{{.FOLDER}}"
     cmds:
       - uv run python -m pytest {{.CLI_ARGS}}
+  
+  cover-*:
+    desc: "Unit test code coverage of the folder."
+    vars:
+      FOLDER: "lab{{index .MATCH 0}}"
+    dir: "{{.FOLDER}}"
+    cmds:
+      - uv run coverage run -m pytest
+      - uv run coverage html

@@ -28,3 +28,8 @@ def test_client_public_key_gen(sk: str, pk: str):
 def test_client_initialised_with_bad_key_length(sk: str):
     with pytest.raises(BadKeyLengthError):
         Ed25519Client(sk)
+
+
+def test_client_random_intialise():
+    c = Ed25519Client()
+    assert len(c._secret) == c.KEY_LEN

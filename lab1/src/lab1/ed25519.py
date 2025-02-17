@@ -13,14 +13,14 @@ class Ed25519Client(Ed25519Base):
 
     type ClientInput = bytes | str
 
-    def __init__(self, secret: ClientInput | None) -> None:
+    def __init__(self, secret: ClientInput | None = None) -> None:
         """Initialise client from some randomly generated secret key, or generate one"""
         if secret:
             self._secret = self._clean_input(secret)
             if (secret_len := len(self._secret)) != self.KEY_LEN:
                 raise BadKeyLengthError(self.KEY_LEN, secret_len)
         else:
-            self._secret = random_bytes(32)
+            self._secret = random_bytes(self.KEY_LEN)
 
         self._public = self._secret_to_public(self._secret)
 
