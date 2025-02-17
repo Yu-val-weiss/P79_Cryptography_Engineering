@@ -23,7 +23,7 @@ tasks:
         msg: "One or more unit tests are failing, fix before zipping."
       - sh: uv run mypy src
         msg: "Mypy is failing."
-      - sh: ls {{.FOLDER}}/*.pdf
+      - sh: ls *.pdf
         msg: "Lab report not present, add before zipping."
     silent: false
 
