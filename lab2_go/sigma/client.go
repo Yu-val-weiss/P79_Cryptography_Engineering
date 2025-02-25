@@ -22,46 +22,6 @@ func makeScalar() []byte {
 	return scalar
 }
 
-type Client struct {
-	Name    string
-	Public  ed25519.PublicKey
-	private ed25519.PrivateKey
-	x       []byte
-	g_x     []byte
-	k_M     []byte
-	k_S     []byte
-}
-
-// New creates a new instance of a Client.
-func NewClient(name string) Client {
-	pub, priv, err := ed25519.GenerateKey(rand.Reader)
-	if err != nil {
-		panic(fmt.Sprintf("could not initialise client, error: %v", err))
-	}
-	return Client{Name: name, Public: pub, private: priv, k_M: nil, k_S: nil}
-}
-
-func (c *Client) Register(ca *certauth.CertificateAuthority) certauth.Certificate {
-	return ca.RegisterCertificate(c.Name, c.Public)
-}
-
-func (c *Client) GetCertificate(ca *certauth.CertificateAuthority) certauth.Certificate {
-	cert, err := ca.GetCertificate(c.Name)
-	if err != nil {
-		panic("certificate not found with authority, client should have been registered")
-	}
-	return cert
-}
-
-// should only be called after the client has been registered with the required certificate authority
-func (c *Client) Certify(ca *certauth.CertificateAuthority) certauth.ValidatedCertificate {
-	val_cert, err := ca.Certify(c.Name)
-	if err != nil {
-		panic("certificate not found with authority, client should have been registered")
-	}
-	return val_cert
-}
-
 func deriveKeys(base []byte) (k_m, k_s []byte) {
 	hasher := sha256.New()
 	hasher.Write(slices.Concat(base, []byte("MAC")))
@@ -81,8 +41,85 @@ func hMac(key []byte, data []byte) []byte {
 	return h_mac.Sum(nil)
 }
 
-// initiate as Alice, sends commitment g**x
-func (a *Client) Initiate() []byte {
+// base client interface shared functionality
+type BaseClient struct {
+	Name    string
+	Public  ed25519.PublicKey
+	private ed25519.PrivateKey
+	ca      *certauth.CertificateAuthority
+}
+
+// NewBaseClient creates a new instance of a BaseClient.
+func NewBaseClient(name string) BaseClient {
+	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		panic(fmt.Sprintf("could not initialise client, error: %v", err))
+	}
+	return BaseClient{Name: name, Public: pub, private: priv}
+}
+
+func (c *BaseClient) Register(ca *certauth.CertificateAuthority) certauth.Certificate {
+	c.ca = ca
+	return ca.RegisterCertificate(c.Name, c.Public)
+}
+
+func (c *BaseClient) checkCA() {
+	if c.ca == nil {
+		panic("client must be registered to a certification authority")
+	}
+}
+
+func (c *BaseClient) GetCertificate() certauth.Certificate {
+	c.checkCA()
+	cert, err := c.ca.GetCertificate(c.Name)
+	if err != nil {
+		panic("certificate not found with authority, client should have been registered")
+	}
+	return cert
+}
+
+// should only be called after the client has been registered with the required certificate authority
+func (c *BaseClient) Certify() certauth.ValidatedCertificate {
+	c.checkCA()
+	val_cert, err := c.ca.Certify(c.Name)
+	if err != nil {
+		panic("certificate not found with authority, client should have been registered")
+	}
+	return val_cert
+}
+
+// InitiatorClient represents the SIGMA protocol initiator (Alice)
+type InitiatorClient struct {
+	BaseClient
+	x   []byte // private scalar
+	g_x []byte // public commitment
+	g_y []byte // challenge received from responder
+}
+
+// NewInitiatorClient creates a new instance of an InitiatorClient.
+func NewInitiatorClient(name string) InitiatorClient {
+	return InitiatorClient{BaseClient: NewBaseClient(name)}
+}
+
+// ChallengerClient represents the SIGMA protocol challenger (Bob)
+type ChallengerClient struct {
+	BaseClient
+	g_x []byte // commitment received from initiator
+	y   []byte // private scalar
+	g_y []byte // public challenge
+	k_M []byte // MAC key
+	k_S []byte // session key
+}
+
+// NewChallengerClient creates a new instance of a ChallengerClient.
+func NewChallengerClient(name string) ChallengerClient {
+	return ChallengerClient{BaseClient: NewBaseClient(name)}
+}
+
+// Initiate starts the SIGMA protocol and returns g^x
+func (a *InitiatorClient) Initiate() []byte {
+	a.checkCA()
+
 	x := makeScalar()
 	res, err := curve25519.X25519(x, curve25519.Basepoint)
 	if err != nil {
@@ -93,25 +130,30 @@ func (a *Client) Initiate() []byte {
 	return res
 }
 
-// challenge as Bob, data is g_x
-// returns [ChallengeMsg] encoded as bytes
-func (b *Client) Challenge(data []byte, ca *certauth.CertificateAuthority) []byte {
-	y := makeScalar()
+// Challenge responds to an initiation with g^y and authentication data
+func (b *ChallengerClient) Challenge(data []byte) []byte {
+	b.checkCA()
 
-	g_y, err_1 := curve25519.X25519(y, data)
+	y := makeScalar()
+	b.y = y
+
+	g_y, err_1 := curve25519.X25519(y, curve25519.Basepoint)
 	g_xy, err_2 := curve25519.X25519(y, data)
 	if err_1 != nil || err_2 != nil {
 		panic("could not compute x25519 functions")
 	}
 
+	b.g_x = data
+	b.g_y = g_y
+
 	k_m, k_s := deriveKeys(g_xy)
 
 	sig_b := ed25519.Sign(b.private, slices.Concat(data, g_y))
 
-	c_b := b.Certify(ca)
+	c_b := b.Certify()
 	m_b := hMac(k_m, c_b.Cert.Marshal())
 
-	// write k_m and k_s to client
+	// store keys for later use
 	b.k_M = k_m
 	b.k_S = k_s
 
@@ -123,8 +165,8 @@ func (b *Client) Challenge(data []byte, ca *certauth.CertificateAuthority) []byt
 	}.Marshal()
 }
 
-// respons as Alice, returns (k_s, marshalled message, error)
-func (a *Client) Respond(data []byte, ca *certauth.CertificateAuthority) ([]byte, []byte, error) {
+// Respond handles the challenger's response and returns session key and response message
+func (a *InitiatorClient) Respond(data []byte) ([]byte, []byte, error) {
 	challenge, err := UnmarshalChallenge(data)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not unmarshal challenge")
@@ -132,7 +174,7 @@ func (a *Client) Respond(data []byte, ca *certauth.CertificateAuthority) ([]byte
 
 	val_cert := challenge.Certificate
 
-	if !ca.VerifyCertificate(val_cert) {
+	if !a.ca.VerifyCertificate(val_cert) {
 		return nil, nil, fmt.Errorf("could not verify certificate with CA")
 	}
 
@@ -140,6 +182,8 @@ func (a *Client) Respond(data []byte, ca *certauth.CertificateAuthority) ([]byte
 	if err_1 != nil {
 		panic("could not compute x25519 function")
 	}
+
+	a.g_y = challenge.Challenge
 
 	k_m, k_s := deriveKeys(g_yx)
 
@@ -151,18 +195,38 @@ func (a *Client) Respond(data []byte, ca *certauth.CertificateAuthority) ([]byte
 
 	g_x_g_y := slices.Concat(a.g_x, challenge.Challenge)
 
-	if !ed25519.Verify(val_cert.Cert.PublicKey, g_x_g_y, val_cert.Sig) {
-		return nil, nil, fmt.Errorf("could not validate challenge")
+	if !ed25519.Verify(val_cert.Cert.PublicKey, g_x_g_y, challenge.Sig) {
+		return nil, nil, fmt.Errorf("could not validate challenge signature")
 	}
 
 	sig_a := ed25519.Sign(a.private, g_x_g_y)
 
-	c_a := a.Certify(ca)
+	c_a := a.Certify()
 	m_a := hMac(k_m, c_a.Cert.Marshal())
 
 	return k_s, ResponseMsg{Certificate: c_a, Sig: sig_a, Mac: m_a}.Marshal(), nil
 }
 
-func (b *Client) Finalise(data []byte, ca *certauth.CertificateAuthority) ([]byte, error) {
-	return nil, nil
+// Finalise verifies the initiator's response and returns the session key
+func (b *ChallengerClient) Finalise(data []byte) ([]byte, error) {
+	response, err := UnmarshalResponse(data)
+	if err != nil {
+		return nil, fmt.Errorf("could not unmarshal response data")
+	}
+
+	val_cert := response.Certificate
+
+	if !b.ca.VerifyCertificate(val_cert) {
+		return nil, fmt.Errorf("could not verify certificate with CA")
+	}
+
+	if !bytes.Equal(hMac(b.k_M, val_cert.Cert.Marshal()), response.Mac) {
+		return nil, fmt.Errorf("could not validate MAC in response")
+	}
+
+	if !ed25519.Verify(val_cert.Cert.PublicKey, slices.Concat(b.g_x, b.g_y), response.Sig) {
+		return nil, fmt.Errorf("could not validate signature in response")
+	}
+
+	return b.k_S, nil
 }
