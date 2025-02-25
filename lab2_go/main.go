@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"slices"
 
@@ -44,8 +43,21 @@ func main() {
 	ca := certauth.NewAuthority()
 
 	pub, _, _ := ed25519.GenerateKey(rand.Reader)
-	c_a := ca.RegisterCertificate("Alice", pub)
+	ca.RegisterCertificate("Alice", pub)
 
-	v, _ := json.Marshal(c_a)
-	fmt.Println(string(v))
+	pubb, _, _ := ed25519.GenerateKey(rand.Reader)
+	ca.RegisterCertificate("Bob", pubb)
+
+	al_cert, _ := ca.Certify("Alice")
+
+	fmt.Printf("%#v\n", al_cert)
+
+	// fmt.Println(string(cert_data))
+
+	fmt.Println(ca.VerifyCertificate(al_cert))
+
+	// alice_cert := certauth.UnmarshalCertificate(cert_data)
+	// fmt.Printf("%#v\n", ca)
+
+	// fmt.Println(sig)
 }
