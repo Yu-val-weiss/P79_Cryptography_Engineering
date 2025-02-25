@@ -49,8 +49,8 @@ type BaseClient struct {
 	ca      *certauth.CertificateAuthority
 }
 
-// NewBaseClient creates a new instance of a BaseClient.
-func NewBaseClient(name string) BaseClient {
+// newBaseClient creates a new instance of a BaseClient.
+func newBaseClient(name string) BaseClient {
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		panic(fmt.Sprintf("could not initialise client, error: %v", err))
@@ -98,7 +98,7 @@ type InitiatorClient struct {
 
 // NewInitiatorClient creates a new instance of an InitiatorClient.
 func NewInitiatorClient(name string) InitiatorClient {
-	return InitiatorClient{BaseClient: NewBaseClient(name)}
+	return InitiatorClient{BaseClient: newBaseClient(name)}
 }
 
 // ChallengerClient represents the SIGMA protocol challenger (Bob)
@@ -113,7 +113,7 @@ type ChallengerClient struct {
 
 // NewChallengerClient creates a new instance of a ChallengerClient.
 func NewChallengerClient(name string) ChallengerClient {
-	return ChallengerClient{BaseClient: NewBaseClient(name)}
+	return ChallengerClient{BaseClient: newBaseClient(name)}
 }
 
 // Initiate starts the SIGMA protocol and returns g^x
