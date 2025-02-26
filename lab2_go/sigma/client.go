@@ -12,7 +12,11 @@ type BaseClient struct {
 	Name    string
 	Public  ed25519.PublicKey
 	private ed25519.PrivateKey
-	ca      *certauth.CertificateAuthority
+}
+
+type RegisteredClient struct {
+	BaseClient
+	ca *certauth.CertificateAuthority
 }
 
 // NewBaseClient creates a new instance of a BaseClient.
@@ -25,22 +29,15 @@ func NewBaseClient(name string) BaseClient {
 }
 
 // register a client with a certificate authority, ca must not be nil, will panic if so.
-func (c *BaseClient) Register(ca *certauth.CertificateAuthority) certauth.Certificate {
+func (c BaseClient) Register(ca *certauth.CertificateAuthority) RegisteredClient {
 	if ca == nil {
 		panic("cannot register client to nil certificate authority")
 	}
-	c.ca = ca
-	return ca.RegisterCertificate(c.Name, c.Public)
+	ca.RegisterCertificate(c.Name, c.Public)
+	return RegisteredClient{BaseClient: c, ca: ca}
 }
 
-func (c *BaseClient) checkCA() {
-	if c.ca == nil {
-		panic("client must be registered to a certification authority")
-	}
-}
-
-func (c *BaseClient) GetCertificate() certauth.Certificate {
-	c.checkCA()
+func (c *RegisteredClient) GetCertificate() certauth.Certificate {
 	cert, err := c.ca.GetCertificate(c.Name)
 	if err != nil {
 		panic("certificate not found with authority, client should have been registered")
@@ -49,8 +46,7 @@ func (c *BaseClient) GetCertificate() certauth.Certificate {
 }
 
 // should only be called after the client has been registered with the required certificate authority
-func (c *BaseClient) Certify() certauth.ValidatedCertificate {
-	c.checkCA()
+func (c *RegisteredClient) Certify() certauth.ValidatedCertificate {
 	val_cert, err := c.ca.Certify(c.Name)
 	if err != nil {
 		panic("certificate not found with authority, client should have been registered")
@@ -107,16 +103,15 @@ func (s *CompletedState) isChallengerState() {}
 
 // InitiatorClient represents the SIGMA protocol initiator (Alice)
 type InitiatorClient struct {
-	*BaseClient
+	*RegisteredClient
 	state InitiatorState
 }
 
 // AsInitiator converts a BaseClient to an InitiatorClient
-func (c *BaseClient) AsInitiator() *InitiatorClient {
-	c.checkCA() // Ensure client is registered before conversion
+func (c *RegisteredClient) AsInitiator() *InitiatorClient {
 	return &InitiatorClient{
-		BaseClient: c,
-		state:      &InitiatorBaseState{},
+		RegisteredClient: c,
+		state:            &InitiatorBaseState{},
 	}
 }
 
@@ -140,15 +135,14 @@ func (c *ChallengerClient) SessionKey() ([]byte, error) {
 
 // ChallengerClient represents the SIGMA protocol challenger (Bob)
 type ChallengerClient struct {
-	*BaseClient
+	*RegisteredClient
 	state ChallengerState
 }
 
 // AsChallenger creates a new instance of a ChallengerClient from a BaseClient.
-func (c *BaseClient) AsChallenger(name string) *ChallengerClient {
-	c.checkCA() // Ensure client is registered before conversion
+func (c *RegisteredClient) AsChallenger(name string) *ChallengerClient {
 	return &ChallengerClient{
-		BaseClient: c,
-		state:      &ChallengerBaseState{},
+		RegisteredClient: c,
+		state:            &ChallengerBaseState{},
 	}
 }
