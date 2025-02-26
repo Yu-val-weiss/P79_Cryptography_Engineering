@@ -38,6 +38,18 @@ tasks:
       - cp ../run.sh .
       - sed -i "" "s/X/{{.FOLDER}}/g" run.sh
       - ./run.sh
+
+  dockergo-*:
+    desc: "Check Docker works for go."
+    vars:
+      FOLDER: "lab{{index .MATCH 0}}"
+    dir: "{{.FOLDER}}"
+    cmds:
+      - cp ../Dockerfile.go ./Dockerfile
+      - cp ../.dockerignore .
+      - cp ../run.sh .
+      - sed -i "" "s/X/{{.FOLDER}}/g" run.sh
+      - ./run.sh
   
   clean-*:
     desc: "Cleanup."
@@ -63,6 +75,14 @@ tasks:
     dir: "{{.FOLDER}}"
     cmds:
       - uv run python -m pytest {{.CLI_ARGS}}
+
+  testgo-*:
+    desc: "Test the folder (go)."
+    vars:
+      FOLDER: "lab{{index .MATCH 0}}"
+    dir: "{{.FOLDER}}"
+    cmds:
+      - gotestsum ./...
   
   cover-*:
     desc: "Unit test code coverage of the folder."
