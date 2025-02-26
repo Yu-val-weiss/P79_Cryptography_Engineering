@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [tool.uv.workspace]
-members = ["lab0", "lab1", "lab2", "lab3", "lab4"]
+members = ["lab0", "lab1", "lab2", "lab3", "lab4", "in_class"]
 
 [tool.uv.sources]
 lab0 = { workspace = true }
