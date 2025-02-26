@@ -31,6 +31,7 @@ type ChatSession struct {
 	SessionKey []byte // SIGMA-derived session key (32 bytes)
 }
 
+// create AES with Galois Counter Mode cipher
 func createGCM(session_key []byte) (cipher.AEAD, error) {
 	// create cipher block
 	block, err := aes.NewCipher(session_key)
@@ -74,6 +75,7 @@ func (cs *ChatSession) Encrypt(msg Message) ([]byte, error) {
 	})
 }
 
+// decrypt ciphertext with AES using Galois Counter Mode
 func (cs *ChatSession) Decrypt(data []byte) (Message, error) {
 	var encMsg EncryptedMessage
 	var msg Message
@@ -115,7 +117,9 @@ func (cs *ChatSession) ReceiveMessage(data []byte) (Message, error) {
 	return cs.Decrypt(data)
 }
 
-// sets up a secure chat session, returns each party's chat session and an error if one arises
+// Sets up a secure chat session, returns each party's chat session and an error if one arises.
+// This essentially simulates a SIGMA exchange
+//
 // assumes both intiator and challenger are already registered to the certificate authority
 func EstablishSecureChat(initiator *InitiatorClient, challenger *ChallengerClient) (*ChatSession, *ChatSession, error) {
 	if initiator.ca != challenger.ca {

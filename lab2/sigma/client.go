@@ -96,7 +96,7 @@ type ChallengerBegunState struct {
 
 func (s *ChallengerBegunState) isChallengerState() {}
 
-// Shared completed state represents a client that has completed the protocol
+// completed state represents a client that has completed the protocol, in either the initiator or challenger role
 type CompletedState struct {
 	k_S []byte // session key
 }
