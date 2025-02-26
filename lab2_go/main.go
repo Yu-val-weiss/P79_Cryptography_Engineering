@@ -43,10 +43,10 @@ func main() {
 	ca := certauth.NewAuthority()
 
 	pub, _, _ := ed25519.GenerateKey(nil)
-	ca.RegisterCertificate("Alice", pub)
+	ca.Register("Alice", pub)
 
 	pubb, _, _ := ed25519.GenerateKey(nil)
-	ca.RegisterCertificate("Bob", pubb)
+	ca.Register("Bob", pubb)
 
 	al_cert, _ := ca.Certify("Alice")
 

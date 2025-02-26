@@ -3,6 +3,7 @@ package sigma
 import (
 	"crypto/ed25519"
 	"fmt"
+	"slices"
 
 	certauth "github.com/yu-val-weiss/p79_cryptography_engineering/lab2/cert_auth"
 )
@@ -16,7 +17,8 @@ type BaseClient struct {
 
 type RegisteredClient struct {
 	BaseClient
-	ca *certauth.CertificateAuthority
+	ca   *certauth.CertificateAuthority
+	cert certauth.Certificate
 }
 
 // NewBaseClient creates a new instance of a BaseClient.
@@ -28,21 +30,23 @@ func NewBaseClient(name string) BaseClient {
 	return BaseClient{Name: name, Public: pub, private: priv}
 }
 
-// register a client with a certificate authority, ca must not be nil, will panic if so.
+// Register a client with a certificate authority, ca must not be nil, will panic if so.
+//
+// Returns [RegisteredClient], a promoted type that guarantees that the client is registered to the given [certauth.CertificateAuthority]
 func (c BaseClient) Register(ca *certauth.CertificateAuthority) RegisteredClient {
 	if ca == nil {
 		panic("cannot register client to nil certificate authority")
 	}
-	ca.RegisterCertificate(c.Name, c.Public)
-	return RegisteredClient{BaseClient: c, ca: ca}
-}
-
-func (c *RegisteredClient) GetCertificate() certauth.Certificate {
-	cert, err := c.ca.GetCertificate(c.Name)
-	if err != nil {
-		panic("certificate not found with authority, client should have been registered")
+	cert := ca.Register(c.Name, c.Public)
+	return RegisteredClient{
+		BaseClient: BaseClient{
+			Name:    c.Name,
+			Public:  slices.Clone(c.Public),  // defensive clone
+			private: slices.Clone(c.private), // defensive clone
+		},
+		ca:   ca,
+		cert: cert,
 	}
-	return cert
 }
 
 // should only be called after the client has been registered with the required certificate authority

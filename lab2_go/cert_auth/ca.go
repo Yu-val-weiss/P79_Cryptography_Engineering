@@ -75,7 +75,11 @@ func NewAuthority() *CertificateAuthority {
 	}
 }
 
-func (ca *CertificateAuthority) RegisterCertificate(name string, public_key ed25519.PublicKey) Certificate {
+// registers a name and public key with the certificate authority and returns a [Certificate]
+//
+// if the registration already exists and is still valid, and this method is called with the same public key
+// then behaviour is idempotent and simply returns the existing certificate, without extending the validity
+func (ca *CertificateAuthority) Register(name string, public_key ed25519.PublicKey) Certificate {
 	exist_cert, exists := ca.regcerts[name]
 	if exists && bytes.Equal(exist_cert.PublicKey, public_key) {
 		return exist_cert.clone() // cannot re-register with the same public key, so return existing one
