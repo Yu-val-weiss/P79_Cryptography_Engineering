@@ -46,11 +46,11 @@ func (c Certificate) Marshal() []byte {
 
 // Unmarshals the byte data to a certificate
 func UnmarshalCertificate(data []byte) (Certificate, error) {
-	cert := &Certificate{}
-	if err := json.Unmarshal(data, cert); err != nil {
-		return Certificate{}, fmt.Errorf("could not unmarshall JSON, error: %v", err)
+	var cert Certificate
+	if err := json.Unmarshal(data, &cert); err != nil {
+		return cert, fmt.Errorf("could not unmarshall JSON, error: %v", err)
 	}
-	return *cert, nil
+	return cert, nil
 }
 
 type ValidatedCertificate struct {

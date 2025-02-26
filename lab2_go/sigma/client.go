@@ -42,7 +42,7 @@ func hMac(key []byte, data []byte) []byte {
 }
 
 // base client interface shared functionality
-type BaseClient struct {
+type baseClient struct {
 	Name    string
 	Public  ed25519.PublicKey
 	private ed25519.PrivateKey
@@ -50,26 +50,30 @@ type BaseClient struct {
 }
 
 // newBaseClient creates a new instance of a BaseClient.
-func newBaseClient(name string) BaseClient {
+func newBaseClient(name string) baseClient {
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		panic(fmt.Sprintf("could not initialise client, error: %v", err))
 	}
-	return BaseClient{Name: name, Public: pub, private: priv}
+	return baseClient{Name: name, Public: pub, private: priv}
 }
 
-func (c *BaseClient) Register(ca *certauth.CertificateAuthority) certauth.Certificate {
+// register a client with a certificate authority, ca must not be nil, will panic if so.
+func (c *baseClient) Register(ca *certauth.CertificateAuthority) certauth.Certificate {
+	if ca == nil {
+		panic("cannot register client to nil certificate authority")
+	}
 	c.ca = ca
 	return ca.RegisterCertificate(c.Name, c.Public)
 }
 
-func (c *BaseClient) checkCA() {
+func (c *baseClient) checkCA() {
 	if c.ca == nil {
 		panic("client must be registered to a certification authority")
 	}
 }
 
-func (c *BaseClient) GetCertificate() certauth.Certificate {
+func (c *baseClient) GetCertificate() certauth.Certificate {
 	c.checkCA()
 	cert, err := c.ca.GetCertificate(c.Name)
 	if err != nil {
@@ -79,7 +83,7 @@ func (c *BaseClient) GetCertificate() certauth.Certificate {
 }
 
 // should only be called after the client has been registered with the required certificate authority
-func (c *BaseClient) Certify() certauth.ValidatedCertificate {
+func (c *baseClient) Certify() certauth.ValidatedCertificate {
 	c.checkCA()
 	val_cert, err := c.ca.Certify(c.Name)
 	if err != nil {
@@ -90,7 +94,7 @@ func (c *BaseClient) Certify() certauth.ValidatedCertificate {
 
 // InitiatorClient represents the SIGMA protocol initiator (Alice)
 type InitiatorClient struct {
-	BaseClient
+	baseClient
 	x   []byte // private scalar
 	g_x []byte // public commitment
 	g_y []byte // challenge received from responder
@@ -98,12 +102,12 @@ type InitiatorClient struct {
 
 // NewInitiatorClient creates a new instance of an InitiatorClient.
 func NewInitiatorClient(name string) InitiatorClient {
-	return InitiatorClient{BaseClient: newBaseClient(name)}
+	return InitiatorClient{baseClient: newBaseClient(name)}
 }
 
 // ChallengerClient represents the SIGMA protocol challenger (Bob)
 type ChallengerClient struct {
-	BaseClient
+	baseClient
 	g_x []byte // commitment received from initiator
 	y   []byte // private scalar
 	g_y []byte // public challenge
@@ -113,7 +117,7 @@ type ChallengerClient struct {
 
 // NewChallengerClient creates a new instance of a ChallengerClient.
 func NewChallengerClient(name string) ChallengerClient {
-	return ChallengerClient{BaseClient: newBaseClient(name)}
+	return ChallengerClient{baseClient: newBaseClient(name)}
 }
 
 // Initiate starts the SIGMA protocol and returns g^x

@@ -1,0 +1,147 @@
+package sigmachat
+
+import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"encoding/json"
+	"fmt"
+	"io"
+	"time"
+
+	certauth "github.com/yu-val-weiss/p79_cryptography_engineering/lab2/cert_auth"
+	"github.com/yu-val-weiss/p79_cryptography_engineering/lab2/sigma"
+)
+
+type Message struct {
+	Sender    string    `json:"sender"`
+	Recipient string    `json:"recipient"`
+	Content   string    `json:"content"`
+	Timestamp time.Time `json:"ts"`
+}
+
+func (m Message) String() string {
+	return fmt.Sprintf("[%v] %v: %v", m.Timestamp.Format("Mon Jan 02 15:04:05"), m.Sender, m.Recipient)
+}
+
+type EncryptedMessage struct {
+	IV         []byte `json:"iv"`
+	Ciphertext []byte `json:"ciphertext"`
+}
+
+type ChatSession struct {
+	Local      string // name of local client
+	Remote     string // name of remote client
+	SessionKey []byte // SIGMA-derived session key (32 bytes)
+}
+
+func createGCM(session_key []byte) (cipher.AEAD, error) {
+	// create cipher block
+	block, err := aes.NewCipher(session_key)
+	if err != nil {
+		return nil, fmt.Errorf("error creating cipher: %v", err)
+	}
+
+	// use Galois Counter Mode for symmetric encryption
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, fmt.Errorf("error creating GCM: %v", err)
+	}
+
+	return gcm, nil
+}
+
+// encrypt a message using AES with Galois Counter Mode for symmetric encryption
+func (cs *ChatSession) Encrypt(msg Message) ([]byte, error) {
+	msg_data, err := json.Marshal(msg)
+	if err != nil {
+		return nil, fmt.Errorf("error serialising message : %v", err)
+	}
+
+	gcm, err := createGCM(cs.SessionKey)
+	if err != nil {
+		return nil, err
+	}
+
+	// create IV
+	iv := make([]byte, gcm.NonceSize())
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		return nil, fmt.Errorf("error generating iv: %v", err)
+	}
+
+	// encrypt
+	ciphertext := gcm.Seal(nil, iv, msg_data, nil)
+
+	return json.Marshal(EncryptedMessage{
+		IV:         iv,
+		Ciphertext: ciphertext,
+	})
+}
+
+func (cs *ChatSession) Decrypt(data []byte) (Message, error) {
+	var encMsg EncryptedMessage
+	var msg Message
+
+	if err := json.Unmarshal(data, &encMsg); err != nil {
+		return msg, fmt.Errorf("error deserialising encrypted message: %v", err)
+	}
+
+	gcm, err := createGCM(cs.SessionKey)
+	if err != nil {
+		return msg, err
+	}
+
+	msg_data, err := gcm.Open(nil, encMsg.IV, encMsg.Ciphertext, nil)
+	if err != nil {
+		return msg, fmt.Errorf("error decrypting message: %v", err)
+	}
+
+	if err := json.Unmarshal(msg_data, &msg); err != nil {
+		return msg, fmt.Errorf("error deserializing message: %v", err)
+	}
+
+	return msg, nil
+}
+
+// SendMessage encrypts and "sends" a message, by returning the encyrpted data
+func (cs *ChatSession) SendMessage(content string) ([]byte, error) {
+	return cs.Encrypt(
+		Message{
+			Sender:    cs.Local,
+			Recipient: cs.Remote,
+			Content:   content,
+			Timestamp: time.Now(),
+		},
+	)
+}
+
+func (cs *ChatSession) ReceiveMessage(data []byte) (Message, error) {
+	return cs.Decrypt(data)
+}
+
+// sets up a secure chat session, returns each party's chat session and an error if one arises
+// assumes both intiator and challenger are already registered to the certificate authority
+func EstablishSecureChat(ca *certauth.CertificateAuthority, initiator *sigma.InitiatorClient, challenger *sigma.ChallengerClient) (*ChatSession, *ChatSession, error) {
+	// begin SIGMA protocol
+	g_x := initiator.Initiate()
+
+	// challenger responds
+	challenge := challenger.Challenge(g_x)
+
+	// initiator responds again and derives its own session key
+	init_key, resp, err := initiator.Respond(challenge)
+	if err != nil {
+		return nil, nil, fmt.Errorf("initiator response failed: %v", err)
+	}
+
+	// challenger finalises and gets session key
+	chall_key, err := challenger.Finalise(resp)
+	if err != nil {
+		return nil, nil, fmt.Errorf("challenger finalisation failed: %v", err)
+	}
+
+	initiatorSession := ChatSession{initiator.Name, challenger.Name, init_key}
+	challengerSession := ChatSession{challenger.Name, initiator.Name, chall_key}
+
+	return &initiatorSession, &challengerSession, nil
+}

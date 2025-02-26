@@ -24,11 +24,11 @@ func (r ChallengeMsg) Marshal() []byte {
 }
 
 func UnmarshalChallenge(data []byte) (ChallengeMsg, error) {
-	chall := &ChallengeMsg{}
-	if err := json.Unmarshal(data, chall); err != nil {
-		return ChallengeMsg{}, fmt.Errorf("could not unmarshall JSON, error: %v", err)
+	var chall ChallengeMsg
+	if err := json.Unmarshal(data, &chall); err != nil {
+		return chall, fmt.Errorf("could not unmarshall JSON, error: %v", err)
 	}
-	return *chall, nil
+	return chall, nil
 }
 
 type ResponseMsg struct {
@@ -46,9 +46,9 @@ func (r ResponseMsg) Marshal() []byte {
 }
 
 func UnmarshalResponse(data []byte) (ResponseMsg, error) {
-	resp := &ResponseMsg{}
-	if err := json.Unmarshal(data, resp); err != nil {
-		return ResponseMsg{}, fmt.Errorf("could not unmarshall JSON, error: %v", err)
+	var resp ResponseMsg
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return resp, fmt.Errorf("could not unmarshall JSON, error: %v", err)
 	}
-	return *resp, nil
+	return resp, nil
 }
