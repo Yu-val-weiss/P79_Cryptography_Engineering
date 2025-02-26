@@ -27,6 +27,30 @@ tasks:
         msg: "Lab report not present, add before zipping."
     silent: false
 
+  zipgo-*:
+    desc: "Zip lab directory ready for submission."
+    vars:
+      FOLDER: "lab{{index .MATCH 0}}"
+    dir: "{{.FOLDER}}"
+    cmds:
+      - mkdir -p ../zips
+      - cp ../Dockerfile.go ./Dockerfile
+      - defer: rm -f Dockerfile
+      - cp ../.dockerignore .
+      - defer: rm -f .dockerignore
+      - cp ../run.sh .
+      - defer: rm -f ./run.sh
+      - sed -i "" "s/X/{{.FOLDER}}/g" run.sh
+      - zip -r ../zips/{{.FOLDER}}.zip $(git ls-files) $(git ls-files --others --exclude-standard)
+      - cp ../zips/{{.FOLDER}}.zip /Users/yuval/Desktop
+      - du -sh ../zips/{{.FOLDER}}.zip
+    preconditions:
+      - sh: gotestsum ./...
+        msg: "One or more unit tests are failing, fix before zipping."
+      - sh: ls *.pdf
+        msg: "Lab report not present, add before zipping."
+    silent: false
+
   docker-*:
     desc: "Check Docker works."
     vars:
