@@ -1,4 +1,4 @@
-package sigmachat
+package sigma
 
 import (
 	"crypto/aes"
@@ -7,9 +7,6 @@ import (
 	"fmt"
 	"io"
 	"time"
-
-	certauth "github.com/yu-val-weiss/p79_cryptography_engineering/lab2/cert_auth"
-	"github.com/yu-val-weiss/p79_cryptography_engineering/lab2/sigma"
 )
 
 type Message struct {
@@ -120,7 +117,10 @@ func (cs *ChatSession) ReceiveMessage(data []byte) (Message, error) {
 
 // sets up a secure chat session, returns each party's chat session and an error if one arises
 // assumes both intiator and challenger are already registered to the certificate authority
-func EstablishSecureChat(ca *certauth.CertificateAuthority, initiator *sigma.InitiatorClient, challenger *sigma.ChallengerClient) (*ChatSession, *ChatSession, error) {
+func EstablishSecureChat(initiator *InitiatorClient, challenger *ChallengerClient) (*ChatSession, *ChatSession, error) {
+	if initiator.ca != challenger.ca {
+		return nil, nil, fmt.Errorf("both clients should be registered with the same authority")
+	}
 	// begin SIGMA protocol
 	g_x, err := initiator.Initiate()
 	if err != nil {
@@ -140,7 +140,7 @@ func EstablishSecureChat(ca *certauth.CertificateAuthority, initiator *sigma.Ini
 	}
 
 	// challenger finalises and gets session key
-	if challenger.Finalise(resp) != nil {
+	if err = challenger.Finalise(resp); err != nil {
 		return nil, nil, fmt.Errorf("challenger finalisation failed: %v", err)
 	}
 

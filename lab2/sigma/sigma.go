@@ -65,10 +65,14 @@ func (b *ChallengerClient) Challenge(data []byte) ([]byte, error) {
 
 	y := makeScalar()
 
-	g_y, err_1 := curve25519.X25519(y, curve25519.Basepoint)
-	g_xy, err_2 := curve25519.X25519(y, data)
-	if err_1 != nil || err_2 != nil {
-		panic("could not compute x25519 functions")
+	g_y, err := curve25519.X25519(y, curve25519.Basepoint)
+	if err != nil {
+		return nil, fmt.Errorf("could not compute x25519 function: %v", err)
+	}
+
+	g_xy, err := curve25519.X25519(y, data)
+	if err != nil {
+		return nil, fmt.Errorf("could not compute x25519 function: %v", err)
 	}
 
 	k_M, k_S := deriveKeys(g_xy)
@@ -80,7 +84,7 @@ func (b *ChallengerClient) Challenge(data []byte) ([]byte, error) {
 
 	b.state = &ChallengerBegunState{
 		g_x: data,
-		g_y: data,
+		g_y: g_y,
 		k_M: k_M,
 		k_S: k_S,
 	}
@@ -96,6 +100,7 @@ func (b *ChallengerClient) Challenge(data []byte) ([]byte, error) {
 }
 
 // Respond handles the challenger's response and returns the response message and an error if it exists
+//
 // The session key is stored in the client, and can be retrieved with [InitiatorClient.SessionKey]
 func (a *InitiatorClient) Respond(data []byte) ([]byte, error) {
 	state, ok := a.state.(*InitiatorBegunState)
@@ -113,9 +118,9 @@ func (a *InitiatorClient) Respond(data []byte) ([]byte, error) {
 		return nil, fmt.Errorf("could not verify certificate with CA")
 	}
 
-	g_yx, err_1 := curve25519.X25519(state.x, challenge.Challenge)
-	if err_1 != nil {
-		panic("could not compute x25519 function")
+	g_yx, err := curve25519.X25519(state.x, challenge.Challenge)
+	if err != nil {
+		return nil, fmt.Errorf("could not compute x25519 function: %v", err)
 	}
 
 	k_M, k_S := deriveKeys(g_yx)
@@ -143,6 +148,7 @@ func (a *InitiatorClient) Respond(data []byte) ([]byte, error) {
 }
 
 // Finalise verifies the initiator's response and returns an error if one has arisen (nil otherwise)
+//
 // The session key is stored in the client, and can be retrieved with [ChallengerClient.SessionKey]
 func (b *ChallengerClient) Finalise(data []byte) error {
 	state, ok := b.state.(*ChallengerBegunState)

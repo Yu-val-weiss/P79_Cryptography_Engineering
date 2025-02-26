@@ -66,7 +66,7 @@ type CertificateAuthority struct {
 func NewAuthority() *CertificateAuthority {
 	pub, priv, err := ed25519.GenerateKey(nil)
 	if err != nil {
-		panic(fmt.Sprintf("failed to instantiate authority due to error %v", err))
+		panic(fmt.Sprintf("failed to instantiate authority due to key gen error %v", err))
 	}
 	return &CertificateAuthority{
 		regcerts:    make(map[string]Certificate),

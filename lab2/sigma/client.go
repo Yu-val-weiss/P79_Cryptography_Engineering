@@ -25,7 +25,7 @@ type RegisteredClient struct {
 func NewBaseClient(name string) BaseClient {
 	pub, priv, err := ed25519.GenerateKey(nil)
 	if err != nil {
-		panic(fmt.Sprintf("could not initialise client, error: %v", err))
+		panic(fmt.Sprintf("could not initialise client, due to key gen error: %v", err))
 	}
 	return BaseClient{Name: name, Public: pub, private: priv}
 }
@@ -35,7 +35,7 @@ func NewBaseClient(name string) BaseClient {
 // Returns [RegisteredClient], a promoted type that guarantees that the client is registered to the given [certauth.CertificateAuthority]
 func (c BaseClient) Register(ca *certauth.CertificateAuthority) RegisteredClient {
 	if ca == nil {
-		panic("cannot register client to nil certificate authority")
+		panic("cannot register client to a nil certificate authority")
 	}
 	cert := ca.Register(c.Name, c.Public)
 	return RegisteredClient{
@@ -53,7 +53,7 @@ func (c BaseClient) Register(ca *certauth.CertificateAuthority) RegisteredClient
 func (c *RegisteredClient) Certify() certauth.ValidatedCertificate {
 	val_cert, err := c.ca.Certify(c.Name)
 	if err != nil {
-		panic("certificate not found with authority, client should have been registered")
+		panic(fmt.Sprintf("could not certify client due to error: %v", err))
 	}
 	return val_cert
 }
@@ -119,7 +119,7 @@ func (c *RegisteredClient) AsInitiator() *InitiatorClient {
 	}
 }
 
-func getKeyFromState(state any) ([]byte, error) {
+func getKeyFromCompletedState(state any) ([]byte, error) {
 	s, ok := state.(*CompletedState)
 	if !ok {
 		return nil, fmt.Errorf("client is not in completed state")
@@ -128,13 +128,9 @@ func getKeyFromState(state any) ([]byte, error) {
 }
 
 // retrieves session key from an initiator client
+// only returns if state is [CompletedState]
 func (c *InitiatorClient) SessionKey() ([]byte, error) {
-	return getKeyFromState(c.state)
-}
-
-// retrieves session key from a challenger client
-func (c *ChallengerClient) SessionKey() ([]byte, error) {
-	return getKeyFromState(c.state)
+	return getKeyFromCompletedState(c.state)
 }
 
 // ChallengerClient represents the SIGMA protocol challenger (Bob)
@@ -144,9 +140,15 @@ type ChallengerClient struct {
 }
 
 // AsChallenger creates a new instance of a ChallengerClient from a BaseClient.
-func (c *RegisteredClient) AsChallenger(name string) *ChallengerClient {
+func (c *RegisteredClient) AsChallenger() *ChallengerClient {
 	return &ChallengerClient{
 		RegisteredClient: c,
 		state:            &ChallengerBaseState{},
 	}
+}
+
+// retrieves session key from a challenger client
+// only returns if state is [CompletedState]
+func (c *ChallengerClient) SessionKey() ([]byte, error) {
+	return getKeyFromCompletedState(c.state)
 }
