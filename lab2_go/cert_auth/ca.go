@@ -3,7 +3,6 @@ package certauth
 import (
 	"bytes"
 	"crypto/ed25519"
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"slices"
@@ -64,12 +63,12 @@ type CertificateAuthority struct {
 	authprivkey ed25519.PrivateKey
 }
 
-func NewAuthority() CertificateAuthority {
-	pub, priv, err := ed25519.GenerateKey(rand.Reader)
+func NewAuthority() *CertificateAuthority {
+	pub, priv, err := ed25519.GenerateKey(nil)
 	if err != nil {
 		panic(fmt.Sprintf("failed to instantiate authority due to error %v", err))
 	}
-	return CertificateAuthority{
+	return &CertificateAuthority{
 		regcerts:    make(map[string]Certificate),
 		AuthPubKey:  pub,
 		authprivkey: priv,

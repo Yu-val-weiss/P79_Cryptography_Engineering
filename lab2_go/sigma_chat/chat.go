@@ -3,7 +3,6 @@ package sigmachat
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -65,7 +64,7 @@ func (cs *ChatSession) Encrypt(msg Message) ([]byte, error) {
 
 	// create IV
 	iv := make([]byte, gcm.NonceSize())
-	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+	if _, err := io.ReadFull(nil, iv); err != nil {
 		return nil, fmt.Errorf("error generating iv: %v", err)
 	}
 
@@ -123,21 +122,35 @@ func (cs *ChatSession) ReceiveMessage(data []byte) (Message, error) {
 // assumes both intiator and challenger are already registered to the certificate authority
 func EstablishSecureChat(ca *certauth.CertificateAuthority, initiator *sigma.InitiatorClient, challenger *sigma.ChallengerClient) (*ChatSession, *ChatSession, error) {
 	// begin SIGMA protocol
-	g_x := initiator.Initiate()
+	g_x, err := initiator.Initiate()
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not initiate secure chat session: %v", err)
+	}
 
 	// challenger responds
-	challenge := challenger.Challenge(g_x)
+	challenge, err := challenger.Challenge(g_x)
+	if err != nil {
+		return nil, nil, fmt.Errorf("challenger failed, aborting session: %v", err)
+	}
 
 	// initiator responds again and derives its own session key
-	init_key, resp, err := initiator.Respond(challenge)
+	resp, err := initiator.Respond(challenge)
 	if err != nil {
 		return nil, nil, fmt.Errorf("initiator response failed: %v", err)
 	}
 
 	// challenger finalises and gets session key
-	chall_key, err := challenger.Finalise(resp)
-	if err != nil {
+	if challenger.Finalise(resp) != nil {
 		return nil, nil, fmt.Errorf("challenger finalisation failed: %v", err)
+	}
+
+	init_key, err := initiator.SessionKey()
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not get session key from initiator: %v", err)
+	}
+	chall_key, err := challenger.SessionKey()
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not get session key from challenger: %v", err)
 	}
 
 	initiatorSession := ChatSession{initiator.Name, challenger.Name, init_key}
