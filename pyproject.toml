@@ -34,6 +34,8 @@ select = ["E", "W", "F", "B", "I", "D1", "D417", "D417", "D419"]
 [tool.ruff.per-file-ignores]
 # Ignore all directories named `tests`.
 "tests/**" = ["D"]
+# Ignore all directories named `in_class`.
+"in_class/**" = ["D"]
 # Ignore all files that end in `_test.py`.
 "*_test.py" = ["D"]
 "test_*.py" = ["D"]
