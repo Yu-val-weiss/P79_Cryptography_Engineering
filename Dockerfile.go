@@ -11,7 +11,7 @@ RUN env GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o test2json -ldflags="-s
 
 COPY . .
 
-RUN go test -c ./...
+RUN go test -c -cover ./...
 
 # Minimal runtime stage
 FROM alpine:latest
@@ -19,6 +19,8 @@ FROM alpine:latest
 ENV GOVERSION=1.24
 
 WORKDIR /app
+
+RUN apk add --no-cache ncurses
 
 COPY --from=builder /app/test2json /usr/local/bin/test2json
 COPY --from=builder /go/bin/gotestsum /usr/local/bin/gotestsum
@@ -28,9 +30,9 @@ COPY --from=builder /app/*.test .
 RUN echo '#!/bin/sh' > run-tests.sh && \
     echo 'for test in *.test; do' >> run-tests.sh && \
     echo '  echo ""' >> run-tests.sh && \
-    echo '  echo "=== Running tests for ${test%.test} ==="' >> run-tests.sh && \
+    echo '  echo "$(tput setaf 4)=== Running tests for ${test%.test} ===$(tput sgr0)"' >> run-tests.sh && \
     echo '  echo ""' >> run-tests.sh && \
-    echo '  gotestsum --raw-command -- test2json -t -p ${test%.test} ./$test -test.v' >> run-tests.sh && \
+    echo '  gotestsum --raw-command -- test2json -t -p ${test%.test} ./$test -test.v -test.coverprofile=coverage-${test%.test}.out' >> run-tests.sh && \
     echo 'done' >> run-tests.sh && \
     chmod +x run-tests.sh
 
