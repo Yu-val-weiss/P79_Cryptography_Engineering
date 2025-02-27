@@ -41,6 +41,8 @@ func hMac(key []byte, data []byte) []byte {
 }
 
 // Initiate starts the SIGMA protocol and returns g^x
+//
+// source: lecture slides
 func (a *InitiatorClient) Initiate() ([]byte, error) {
 	if _, ok := a.state.(*initiatorBaseState); !ok {
 		return nil, fmt.Errorf("client must be in base state before initiating")
@@ -58,6 +60,8 @@ func (a *InitiatorClient) Initiate() ([]byte, error) {
 }
 
 // Challenge responds to an initiation with g^y and authentication data
+//
+// source: lecture slides
 func (b *ChallengerClient) Challenge(data []byte) ([]byte, error) {
 	if _, ok := b.state.(*challengerBaseState); !ok {
 		return nil, fmt.Errorf("client must be in base state before challenging")
@@ -102,6 +106,8 @@ func (b *ChallengerClient) Challenge(data []byte) ([]byte, error) {
 // Respond handles the challenger's response and returns the response message and an error if it exists
 //
 // The session key is stored in the client, and can be retrieved with [InitiatorClient.SessionKey]
+//
+// source: lecture slides
 func (a *InitiatorClient) Respond(data []byte) ([]byte, error) {
 	state, ok := a.state.(*initiatorBegunState)
 	if !ok {
@@ -150,6 +156,8 @@ func (a *InitiatorClient) Respond(data []byte) ([]byte, error) {
 // Finalise verifies the initiator's response and returns an error if one has arisen (nil otherwise)
 //
 // The session key is stored in the client, and can be retrieved with [ChallengerClient.SessionKey]
+//
+// source: lecture slides
 func (b *ChallengerClient) Finalise(data []byte) error {
 	state, ok := b.state.(*challengerBegunState)
 	if !ok {
