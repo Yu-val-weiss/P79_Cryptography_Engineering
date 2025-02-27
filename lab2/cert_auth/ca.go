@@ -92,15 +92,7 @@ func (ca *CertificateAuthority) Register(name string, public_key ed25519.PublicK
 	return cert.clone()
 }
 
-func (ca *CertificateAuthority) GetCertificate(name string) (Certificate, error) {
-	cert, ok := ca.regcerts[name]
-	if !ok {
-		return Certificate{}, fmt.Errorf("name '%v' does not have a registered certificate", name)
-	}
-	return cert, nil
-}
-
-// returns JSON marshalled (bytes) certificate, signature, and error
+// returns [ValidatedCertificate] and (possibly nil) error
 // should be unmarshalled with [UnmarshalCertificate].
 func (ca *CertificateAuthority) Certify(name string) (ValidatedCertificate, error) {
 	cert, ok := ca.regcerts[name]

@@ -22,6 +22,21 @@ func TestRegisterCertificate(t *testing.T) {
 	}
 }
 
+func TestReRegisterWithSamePK(t *testing.T) {
+	ca := NewAuthority()
+	p_k := make(ed25519.PublicKey, 32)
+	c_1 := ca.Register("Alice", p_k)
+	c_2 := ca.Register("Alice", p_k)
+
+	if l := len(ca.regcerts); l != 1 {
+		t.Errorf("expected 1 certificates, got %v", l)
+	}
+
+	if !c_1.End.Equal(c_2.End) {
+		t.Errorf("certificate validity should have stayed the same")
+	}
+}
+
 func TestCannotModifyRegisteredCertificate(t *testing.T) {
 	ca := NewAuthority()
 	p_k := make(ed25519.PublicKey, 32)
@@ -50,6 +65,12 @@ func TestMarshalUnmarshalCertificate(t *testing.T) {
 	}
 }
 
+func TestInvalidUnmarhsalGivesError(t *testing.T) {
+	if _, err := UnmarshalCertificate([]byte("invalid certificate data")); err == nil {
+		t.Errorf("expected error for unmarshalling an invalid certificate")
+	}
+}
+
 func TestCertifyVerifyWorks(t *testing.T) {
 	ca := NewAuthority()
 	pub, _, _ := ed25519.GenerateKey(nil)
@@ -57,5 +78,26 @@ func TestCertifyVerifyWorks(t *testing.T) {
 	val_cert, _ := ca.Certify("Alice")
 	if !ca.VerifyCertificate(val_cert) {
 		t.Error("certificate should be valid")
+	}
+}
+
+func TestCertifyWithoutRegistering(t *testing.T) {
+	ca := NewAuthority()
+	if _, err := ca.Certify("alice"); err == nil {
+		t.Errorf("expected error about unregistered certificate")
+	}
+}
+
+func TestExpiredCertificate(t *testing.T) {
+	ca := NewAuthority()
+	cert := ca.Register("Alice", make(ed25519.PublicKey, 32))
+	ca.regcerts["Alice"] = Certificate{
+		Name:      cert.Name,
+		Start:     cert.Start.AddDate(-1, 0, 0),
+		End:       cert.End.AddDate(-1, 0, 0),
+		PublicKey: cert.PublicKey,
+	}
+	if _, err := ca.Certify("alice"); err == nil {
+		t.Errorf("expected error about out of data certificate")
 	}
 }
