@@ -18,6 +18,7 @@ func NewClient(password string) *Client {
 	}
 }
 
+// Retrieve shared key following SPAKE2 protcol, from final state
 func (c *Client) Key() ([]byte, error) {
 	state, ok := c.state.(*finalState)
 	if !ok {
@@ -35,12 +36,21 @@ type baseState struct{}
 func (*baseState) isState() {} // implements [clientState] interface
 
 type initiatedState struct {
-	x    *edwards25519.Scalar
-	w    *edwards25519.Scalar
-	pi_a *edwards25519.Point
+	secret *edwards25519.Scalar
+	w      *edwards25519.Scalar
+	pi     *edwards25519.Point
+	alice  bool
 }
 
 func (*initiatedState) isState() {} // implements [clientState] interface
+
+type challengedState struct {
+	k_cX []byte
+	t    []byte
+	k_e  []byte
+}
+
+func (*challengedState) isState() {} // implements [clientState] interface
 
 type finalState struct {
 	k_e []byte
