@@ -84,6 +84,8 @@ tasks:
       - rm -f run.sh
       - rm -f Dockerfile
       - rm -f .dockerignore
+      - rm -f coverage.out
+      - rm -f coverage.html
 
   mypy-*:
     desc: "Check mypy for src."
@@ -116,3 +118,12 @@ tasks:
     cmds:
       - uv run coverage run -m pytest
       - uv run coverage html
+
+  covergo-*:
+    desc: "Unit test code coverage of the folder."
+    vars:
+      FOLDER: "lab{{index .MATCH 0}}"
+    dir: "{{.FOLDER}}"
+    cmds:
+      - gotestsum -- -coverprofile=coverage.out ./...   
+      - go tool cover -o coverage.html -html=coverage.out; sed -i '' 's/black/whitesmoke/g' coverage.html; open -a Safari coverage.html
