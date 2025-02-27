@@ -9,6 +9,7 @@ import (
 	"slices"
 
 	certauth "github.com/yu-val-weiss/p79_cryptography_engineering/lab2/cert_auth"
+	"github.com/yu-val-weiss/p79_cryptography_engineering/lab2/spake2"
 	"golang.org/x/crypto/curve25519"
 )
 
@@ -60,5 +61,6 @@ func main() {
 	// fmt.Printf("%#v\n", ca)
 
 	// fmt.Println(sig)
+	_ = spake2.Client{}
 
 }
