@@ -60,67 +60,67 @@ func (c *RegisteredClient) Certify() certauth.ValidatedCertificate {
 
 // States (interfaces and subtypes)
 
-// InitiatorState represents a state in the initiator's protocol flow
-type InitiatorState interface {
+// initiatorState represents a state in the initiator's protocol flow
+type initiatorState interface {
 	isInitiatorState() // A marker method to make the interface exclusive to initiator states
 }
 
-// ChallengerState represents a state in the challenger's protocol flow
-type ChallengerState interface {
+// challengerState represents a state in the challenger's protocol flow
+type challengerState interface {
 	isChallengerState() // A marker method to make the interface exclusive to challenger states
 }
 
 // Initiator client states
 
-type InitiatorBaseState struct{}
+type initiatorBaseState struct{}
 
-func (s *InitiatorBaseState) isInitiatorState() {}
+func (s *initiatorBaseState) isInitiatorState() {}
 
-type InitiatorBegunState struct {
+type initiatorBegunState struct {
 	x   []byte // private scalar used for public commitment g**x
 	g_x []byte // public commitment g**x
 }
 
-func (s *InitiatorBegunState) isInitiatorState() {}
+func (s *initiatorBegunState) isInitiatorState() {}
 
-type ChallengerBaseState struct{}
+type challengerBaseState struct{}
 
-func (s *ChallengerBaseState) isChallengerState() {}
+func (s *challengerBaseState) isChallengerState() {}
 
-type ChallengerBegunState struct {
+type challengerBegunState struct {
 	g_x []byte // public commitment
 	g_y []byte // public challenge
 	k_M []byte // MAC key
 	k_S []byte // session key
 }
 
-func (s *ChallengerBegunState) isChallengerState() {}
+func (s *challengerBegunState) isChallengerState() {}
 
 // completed state represents a client that has completed the protocol, in either the initiator or challenger role
-type CompletedState struct {
+type completedState struct {
 	k_S []byte // session key
 }
 
-func (s *CompletedState) isInitiatorState() {}
+func (s *completedState) isInitiatorState() {}
 
-func (s *CompletedState) isChallengerState() {}
+func (s *completedState) isChallengerState() {}
 
 // InitiatorClient represents the SIGMA protocol initiator (Alice)
 type InitiatorClient struct {
 	*RegisteredClient
-	state InitiatorState
+	state initiatorState
 }
 
 // AsInitiator converts a BaseClient to an InitiatorClient
 func (c *RegisteredClient) AsInitiator() *InitiatorClient {
 	return &InitiatorClient{
 		RegisteredClient: c,
-		state:            &InitiatorBaseState{},
+		state:            &initiatorBaseState{},
 	}
 }
 
 func getKeyFromCompletedState(state any) ([]byte, error) {
-	s, ok := state.(*CompletedState)
+	s, ok := state.(*completedState)
 	if !ok {
 		return nil, fmt.Errorf("client is not in completed state")
 	}
@@ -128,7 +128,7 @@ func getKeyFromCompletedState(state any) ([]byte, error) {
 }
 
 // retrieves session key from an initiator client
-// only returns if state is [CompletedState]
+// only returns if state is [completedState]
 func (c *InitiatorClient) SessionKey() ([]byte, error) {
 	return getKeyFromCompletedState(c.state)
 }
@@ -136,19 +136,19 @@ func (c *InitiatorClient) SessionKey() ([]byte, error) {
 // ChallengerClient represents the SIGMA protocol challenger (Bob)
 type ChallengerClient struct {
 	*RegisteredClient
-	state ChallengerState
+	state challengerState
 }
 
 // AsChallenger creates a new instance of a ChallengerClient from a BaseClient.
 func (c *RegisteredClient) AsChallenger() *ChallengerClient {
 	return &ChallengerClient{
 		RegisteredClient: c,
-		state:            &ChallengerBaseState{},
+		state:            &challengerBaseState{},
 	}
 }
 
 // retrieves session key from a challenger client
-// only returns if state is [CompletedState]
+// only returns if state is [completedState]
 func (c *ChallengerClient) SessionKey() ([]byte, error) {
 	return getKeyFromCompletedState(c.state)
 }

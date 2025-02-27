@@ -42,7 +42,7 @@ func hMac(key []byte, data []byte) []byte {
 
 // Initiate starts the SIGMA protocol and returns g^x
 func (a *InitiatorClient) Initiate() ([]byte, error) {
-	if _, ok := a.state.(*InitiatorBaseState); !ok {
+	if _, ok := a.state.(*initiatorBaseState); !ok {
 		return nil, fmt.Errorf("client must be in base state before initiating")
 	}
 	x := makeScalar()
@@ -50,7 +50,7 @@ func (a *InitiatorClient) Initiate() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not initiate SIGMA, error: %v", err)
 	}
-	a.state = &InitiatorBegunState{
+	a.state = &initiatorBegunState{
 		x:   x,
 		g_x: g_x,
 	}
@@ -59,7 +59,7 @@ func (a *InitiatorClient) Initiate() ([]byte, error) {
 
 // Challenge responds to an initiation with g^y and authentication data
 func (b *ChallengerClient) Challenge(data []byte) ([]byte, error) {
-	if _, ok := b.state.(*ChallengerBaseState); !ok {
+	if _, ok := b.state.(*challengerBaseState); !ok {
 		return nil, fmt.Errorf("client must be in base state before challenging")
 	}
 
@@ -82,7 +82,7 @@ func (b *ChallengerClient) Challenge(data []byte) ([]byte, error) {
 	c_b := b.Certify()
 	m_b := hMac(k_M, c_b.Cert.Marshal())
 
-	b.state = &ChallengerBegunState{
+	b.state = &challengerBegunState{
 		g_x: data,
 		g_y: g_y,
 		k_M: k_M,
@@ -103,7 +103,7 @@ func (b *ChallengerClient) Challenge(data []byte) ([]byte, error) {
 //
 // The session key is stored in the client, and can be retrieved with [InitiatorClient.SessionKey]
 func (a *InitiatorClient) Respond(data []byte) ([]byte, error) {
-	state, ok := a.state.(*InitiatorBegunState)
+	state, ok := a.state.(*initiatorBegunState)
 	if !ok {
 		return nil, fmt.Errorf("client must be in intermediate InitiatorBegunState to call this method, was in %T", a.state)
 	}
@@ -142,7 +142,7 @@ func (a *InitiatorClient) Respond(data []byte) ([]byte, error) {
 	c_a := a.Certify()
 	m_a := hMac(k_M, c_a.Cert.Marshal())
 
-	a.state = &CompletedState{k_S: k_S}
+	a.state = &completedState{k_S: k_S}
 
 	return ResponseMsg{Certificate: c_a, Sig: sig_a, Mac: m_a}.Marshal(), nil
 }
@@ -151,7 +151,7 @@ func (a *InitiatorClient) Respond(data []byte) ([]byte, error) {
 //
 // The session key is stored in the client, and can be retrieved with [ChallengerClient.SessionKey]
 func (b *ChallengerClient) Finalise(data []byte) error {
-	state, ok := b.state.(*ChallengerBegunState)
+	state, ok := b.state.(*challengerBegunState)
 	if !ok {
 		return fmt.Errorf("client not in intermediate ChallengerBegunState to call this method, was in %T", state)
 	}
@@ -175,7 +175,7 @@ func (b *ChallengerClient) Finalise(data []byte) error {
 		return fmt.Errorf("could not validate signature in response")
 	}
 
-	b.state = &CompletedState{k_S: state.k_S}
+	b.state = &completedState{k_S: state.k_S}
 
 	return nil
 }

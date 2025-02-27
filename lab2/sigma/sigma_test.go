@@ -16,7 +16,7 @@ func TestCannotCallFromIncorrectInitiatorState(t *testing.T) {
 	} else {
 		t.Logf("correctly got error: %v", err)
 	}
-	alice.state = &CompletedState{}
+	alice.state = &completedState{}
 	_, err = alice.Initiate()
 	if err == nil {
 		t.Errorf("expected error about incorrect state, got nil")
@@ -41,7 +41,7 @@ func TestCannotCallFromIncorrectChallengerState(t *testing.T) {
 	} else {
 		t.Logf("correctly got error: %v", err)
 	}
-	bob.state = &CompletedState{}
+	bob.state = &completedState{}
 	err = bob.Finalise([]byte("invalid"))
 	if err == nil {
 		t.Errorf("expected error about incorrect state, got nil")
@@ -70,7 +70,7 @@ func TestManualSigma(t *testing.T) {
 	}
 
 	switch alice.state.(type) {
-	case *InitiatorBegunState:
+	case *initiatorBegunState:
 		// pass
 	default:
 		t.Errorf("alice's state should be *InitiatorBegunState, got %T", alice.state)
@@ -83,7 +83,7 @@ func TestManualSigma(t *testing.T) {
 	}
 
 	switch bob.state.(type) {
-	case *ChallengerBegunState:
+	case *challengerBegunState:
 		// pass
 	default:
 		t.Errorf("alice's state should be *ChallengerBegunState, got %T", bob.state)
@@ -96,7 +96,7 @@ func TestManualSigma(t *testing.T) {
 	}
 
 	switch alice.state.(type) {
-	case *CompletedState:
+	case *completedState:
 		// pass
 	default:
 		t.Errorf("alice's state should be *CompletedState, got %T", alice.state)
@@ -110,7 +110,7 @@ func TestManualSigma(t *testing.T) {
 	}
 
 	switch bob.state.(type) {
-	case *CompletedState:
+	case *completedState:
 		// pass
 	default:
 		t.Errorf("alice's state should be *CompletedState, got %T", bob.state)
