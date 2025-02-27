@@ -20,7 +20,7 @@ func NewClient(password string) *Client {
 
 // Retrieve shared key following SPAKE2 protcol, from final state
 func (c *Client) Key() ([]byte, error) {
-	state, ok := c.state.(*finalState)
+	state, ok := c.state.(*validatedState)
 	if !ok {
 		return nil, fmt.Errorf("client not in final state, could not return key")
 	}
@@ -44,16 +44,16 @@ type initiatedState struct {
 
 func (*initiatedState) isState() {} // implements [clientState] interface
 
-type challengedState struct {
+type derivedState struct {
 	k_cX []byte
 	t    []byte
 	k_e  []byte
 }
 
-func (*challengedState) isState() {} // implements [clientState] interface
+func (*derivedState) isState() {} // implements [clientState] interface
 
-type finalState struct {
+type validatedState struct {
 	k_e []byte
 }
 
-func (*finalState) isState() {} // implements [clientState] interface
+func (*validatedState) isState() {} // implements [clientState] interface

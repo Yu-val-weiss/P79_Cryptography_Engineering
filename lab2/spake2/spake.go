@@ -15,10 +15,11 @@ import (
 
 // Initiate SPAKE-2 protocol, returns pi and an error if one arose
 //
-// the argument alice indicates which variant of the formulae to use
+// The boolean argument alice indicates which variant of the formulae to use.
+// This is hidden and the public methods which should be used are [Client.InitiateAsAlice] and [Client.InitiateAsBob]
 //
 // source: lecture slides
-func (c *Client) Initiate(alice bool) ([]byte, error) {
+func (c *Client) initiate(alice bool) ([]byte, error) {
 	if _, ok := c.state.(*baseState); !ok {
 		return nil, fmt.Errorf("client must be in base state before initiating SPAKE2")
 	}
@@ -60,12 +61,22 @@ func (c *Client) Initiate(alice bool) ([]byte, error) {
 	return pi.Bytes(), nil
 }
 
+// Initiate SPAKE-2 protocol in the role of Alice, returns pi_a and an error if one arose
+func (c *Client) InitiateAsAlice() ([]byte, error) {
+	return c.initiate(true)
+}
+
+// Initiate SPAKE-2 protocol in the role of Bob, returns pi_b and an error if one arose
+func (c *Client) InitiateAsBob() ([]byte, error) {
+	return c.initiate(false)
+}
+
 // Second stage of protocol
 //
 // data is the [edwards25519.Point] encoded as []byte returned from opposing client's [Client.Initiate]
 //
 // source: lecture slides
-func (c *Client) Challenge(data []byte) ([]byte, error) {
+func (c *Client) Derive(data []byte) ([]byte, error) {
 	state, ok := c.state.(*initiatedState)
 	if !ok {
 		return nil, fmt.Errorf("client must be in initiated state before returning a challenge")
@@ -129,7 +140,7 @@ func (c *Client) Challenge(data []byte) ([]byte, error) {
 		k_cX = K_cA
 	}
 
-	c.state = &challengedState{
+	c.state = &derivedState{
 		k_cX: k_cX,
 		t:    T,
 		k_e:  K_e,
@@ -144,8 +155,8 @@ func (c *Client) Challenge(data []byte) ([]byte, error) {
 // If nil is returned, then K_e is stored in the client state and can be retrieved with [Client.Key]
 //
 // source: lecture slides
-func (c *Client) Finalise(data []byte) error {
-	state, ok := c.state.(*challengedState)
+func (c *Client) Validate(data []byte) error {
+	state, ok := c.state.(*derivedState)
 	if !ok {
 		return fmt.Errorf("client must be in challenge state before finalising")
 	}
@@ -155,7 +166,7 @@ func (c *Client) Finalise(data []byte) error {
 	if !bytes.Equal(data, mu) {
 		return fmt.Errorf("could not finalise SPAKE2: data does not match")
 	}
-	c.state = &finalState{
+	c.state = &validatedState{
 		k_e: state.k_e,
 	}
 	return nil
