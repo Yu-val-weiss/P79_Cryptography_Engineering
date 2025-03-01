@@ -34,7 +34,7 @@ tasks:
     dir: "{{.FOLDER}}"
     cmds:
       - mkdir -p ../zips
-      - cp ../Dockerfile.go ./Dockerfile
+      - cp ../Dockerfile.golab ./Dockerfile
       - defer: rm -f Dockerfile
       - cp ../.dockerignore .
       - defer: rm -f .dockerignore
@@ -69,7 +69,7 @@ tasks:
       FOLDER: "lab{{index .MATCH 0}}"
     dir: "{{.FOLDER}}"
     cmds:
-      - cp ../Dockerfile.go ./Dockerfile
+      - cp ../Dockerfile.golab ./Dockerfile
       - cp ../.dockerignore .
       - cp ../run.sh .
       - sed -i "" "s/X/{{.FOLDER}}/g" run.sh
