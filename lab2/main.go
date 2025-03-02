@@ -9,6 +9,7 @@ import (
 	"slices"
 
 	certauth "github.com/yu-val-weiss/p79_cryptography_engineering/lab2/cert_auth"
+	"github.com/yu-val-weiss/p79_cryptography_engineering/lab2/sigma"
 	"github.com/yu-val-weiss/p79_cryptography_engineering/lab2/spake2"
 	"golang.org/x/crypto/curve25519"
 )
@@ -62,5 +63,28 @@ func main() {
 
 	// fmt.Println(sig)
 	_ = spake2.Client{}
+
+	ca = certauth.NewAuthority()
+	alice_reg := sigma.NewBaseClient("alice").Register(ca)
+	bob_reg := sigma.NewBaseClient("bob").Register(ca)
+	alice := alice_reg.AsInitiator()
+	bob := bob_reg.AsChallenger()
+	alice_session, bob_session, err := sigma.EstablishSecureChat(alice, bob)
+	if err != nil {
+		fmt.Printf("should not return an error, but returned %v\n", err)
+	}
+	msg := "Hey Bob!"
+	fmt.Println("here!!")
+	enc, err := alice_session.SendMessage(msg)
+	if err != nil {
+		fmt.Printf("sending a message should not error, but returned %v\n", err)
+	}
+	dec, err := bob_session.ReceiveMessage(enc)
+	if err != nil {
+		fmt.Printf("should not return an error. but got %v", err)
+	}
+	if dec.Content != msg {
+		fmt.Printf("expected content to be %v, but got %v", msg, dec.Content)
+	}
 
 }

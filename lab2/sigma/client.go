@@ -8,38 +8,43 @@ import (
 	certauth "github.com/yu-val-weiss/p79_cryptography_engineering/lab2/cert_auth"
 )
 
-// base client interface shared functionality
-type BaseClient struct {
+// base client contains shared functionality
+//
+// hidden so cannot construct manually, only through [NewBaseClient]
+type baseClient struct {
 	Name    string
 	Public  ed25519.PublicKey
 	private ed25519.PrivateKey
 }
 
-type RegisteredClient struct {
-	BaseClient
+// promotion baseClient registered to a [certauth.CertificateAuthority]
+//
+// hidden so cannot construct manually, only through promotion of [baseClient] with [baseClient.Register]
+type registeredClient struct {
+	baseClient
 	ca   *certauth.CertificateAuthority
 	cert certauth.Certificate
 }
 
 // NewBaseClient creates a new instance of a BaseClient.
-func NewBaseClient(name string) BaseClient {
+func NewBaseClient(name string) *baseClient {
 	pub, priv, err := ed25519.GenerateKey(nil)
 	if err != nil {
-		panic(fmt.Sprintf("could not initialise client, due to key gen error: %v", err))
+		panic(fmt.Sprintf("could not initialise client due to key gen error: %v", err))
 	}
-	return BaseClient{Name: name, Public: pub, private: priv}
+	return &baseClient{Name: name, Public: pub, private: priv}
 }
 
 // Register a client with a certificate authority, ca must not be nil, will panic if so.
 //
-// Returns [RegisteredClient], a promoted type that guarantees that the client is registered to the given [certauth.CertificateAuthority]
-func (c BaseClient) Register(ca *certauth.CertificateAuthority) RegisteredClient {
+// Returns [registeredClient], a promoted type that guarantees that the client is registered to the given [certauth.CertificateAuthority]
+func (c *baseClient) Register(ca *certauth.CertificateAuthority) *registeredClient {
 	if ca == nil {
 		panic("cannot register client to a nil certificate authority")
 	}
 	cert := ca.Register(c.Name, c.Public)
-	return RegisteredClient{
-		BaseClient: BaseClient{
+	return &registeredClient{
+		baseClient: baseClient{
 			Name:    c.Name,
 			Public:  slices.Clone(c.Public),  // defensive clone
 			private: slices.Clone(c.private), // defensive clone
@@ -50,7 +55,7 @@ func (c BaseClient) Register(ca *certauth.CertificateAuthority) RegisteredClient
 }
 
 // should only be called after the client has been registered with the required certificate authority
-func (c *RegisteredClient) Certify() certauth.ValidatedCertificate {
+func (c *registeredClient) Certify() certauth.ValidatedCertificate {
 	val_cert, err := c.ca.Certify(c.Name)
 	if err != nil {
 		panic(fmt.Sprintf("could not certify client due to error: %v", err))
@@ -107,14 +112,14 @@ func (s *completedState) isChallengerState() {}
 
 // InitiatorClient represents the SIGMA protocol initiator (Alice)
 type InitiatorClient struct {
-	*RegisteredClient
+	*registeredClient
 	state initiatorState
 }
 
 // AsInitiator converts a BaseClient to an InitiatorClient
-func (c *RegisteredClient) AsInitiator() *InitiatorClient {
+func (c *registeredClient) AsInitiator() *InitiatorClient {
 	return &InitiatorClient{
-		RegisteredClient: c,
+		registeredClient: c,
 		state:            &initiatorBaseState{},
 	}
 }
@@ -133,22 +138,23 @@ func (c *InitiatorClient) SessionKey() ([]byte, error) {
 	return getKeyFromCompletedState(c.state)
 }
 
-// ChallengerClient represents the SIGMA protocol challenger (Bob)
-type ChallengerClient struct {
-	*RegisteredClient
+// challengerClient represents the SIGMA protocol challenger (Bob)
+// hidden so cannot manually construct, can only create through [registeredClient.AsChallenger]
+type challengerClient struct {
+	*registeredClient
 	state challengerState
 }
 
 // AsChallenger creates a new instance of a ChallengerClient from a BaseClient.
-func (c *RegisteredClient) AsChallenger() *ChallengerClient {
-	return &ChallengerClient{
-		RegisteredClient: c,
+func (c *registeredClient) AsChallenger() *challengerClient {
+	return &challengerClient{
+		registeredClient: c,
 		state:            &challengerBaseState{},
 	}
 }
 
 // retrieves session key from a challenger client
 // only returns if state is [completedState]
-func (c *ChallengerClient) SessionKey() ([]byte, error) {
+func (c *challengerClient) SessionKey() ([]byte, error) {
 	return getKeyFromCompletedState(c.state)
 }

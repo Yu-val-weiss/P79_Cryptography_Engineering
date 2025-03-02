@@ -62,7 +62,7 @@ func (a *InitiatorClient) Initiate() ([]byte, error) {
 // Challenge responds to an initiation with g^y and authentication data
 //
 // source: lecture slides
-func (b *ChallengerClient) Challenge(data []byte) ([]byte, error) {
+func (b *challengerClient) Challenge(data []byte) ([]byte, error) {
 	if _, ok := b.state.(*challengerBaseState); !ok {
 		return nil, fmt.Errorf("client must be in base state before challenging")
 	}
@@ -155,10 +155,10 @@ func (a *InitiatorClient) Respond(data []byte) ([]byte, error) {
 
 // Finalise verifies the initiator's response and returns an error if one has arisen (nil otherwise)
 //
-// The session key is stored in the client, and can be retrieved with [ChallengerClient.SessionKey]
+// The session key is stored in the client, and can be retrieved with [challengerClient.SessionKey]
 //
 // source: lecture slides
-func (b *ChallengerClient) Finalise(data []byte) error {
+func (b *challengerClient) Finalise(data []byte) error {
 	state, ok := b.state.(*challengerBegunState)
 	if !ok {
 		return fmt.Errorf("client not in intermediate ChallengerBegunState to call this method, was in %T", state)

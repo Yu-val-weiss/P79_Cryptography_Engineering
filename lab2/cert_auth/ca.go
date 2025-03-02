@@ -43,6 +43,10 @@ func (c Certificate) Marshal() []byte {
 	return data
 }
 
+func (c1 Certificate) equal(c2 Certificate) bool {
+	return c1.Name == c2.Name && c1.Start.Equal(c2.Start) && c1.End.Equal(c2.End) && bytes.Equal(c1.PublicKey, c2.PublicKey)
+}
+
 // Unmarshals the byte data to a certificate
 func UnmarshalCertificate(data []byte) (Certificate, error) {
 	var cert Certificate
@@ -111,28 +115,9 @@ func (ca *CertificateAuthority) Certify(name string) (ValidatedCertificate, erro
 }
 
 func (ca *CertificateAuthority) VerifyCertificate(vc ValidatedCertificate) bool {
-	// verify signature first
-	if !ed25519.Verify(ca.AuthPubKey, vc.Cert.Marshal(), vc.Sig) {
-		fmt.Println("here!")
-		return false
-	}
-
 	// check if the certificate is registered
 	storedCert, exists := ca.regcerts[vc.Cert.Name]
-	if !exists {
-		return false
-	}
 
-	// ensure the certificate hasn't expired
-	if time.Now().After(vc.Cert.End) {
-		return false
-	}
-
-	// validate the public key matches
-	if !bytes.Equal(storedCert.PublicKey, vc.Cert.PublicKey) {
-		return false // Public key mismatch
-	}
-
-	// all checks passed, so return true
-	return true
+	// check certificate matches registry, and is not expired, and the signature matches
+	return exists && vc.Cert.equal(storedCert) && time.Now().Before(vc.Cert.End) && ed25519.Verify(ca.AuthPubKey, vc.Cert.Marshal(), vc.Sig)
 }

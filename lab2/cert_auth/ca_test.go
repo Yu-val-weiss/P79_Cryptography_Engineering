@@ -97,7 +97,26 @@ func TestExpiredCertificate(t *testing.T) {
 		End:       cert.End.AddDate(-1, 0, 0),
 		PublicKey: cert.PublicKey,
 	}
-	if _, err := ca.Certify("alice"); err == nil {
+	_, err := ca.Certify("Alice")
+	if err == nil {
 		t.Errorf("expected error about out of data certificate")
 	}
+}
+
+func TestVerifyCertificateFails(t *testing.T) {
+	ca := NewAuthority()
+	ca.Register("Alice", make(ed25519.PublicKey, 32))
+	val_cert, err := ca.Certify("Alice")
+	if err != nil {
+		t.Errorf("expected nill error, got %v", err)
+	}
+	messed_cert := val_cert.Cert.clone()
+	messed_cert.Name = "Alicia"
+	inval_cert := ValidatedCertificate{messed_cert, val_cert.Sig}
+	if ca.VerifyCertificate(inval_cert) {
+		t.Errorf("expected to return false, since certificate did not match signature")
+	}
+	expired_cert := val_cert.Cert.clone()
+	expired_cert.Start = expired_cert.Start.AddDate(0, -5, 0)
+	expired_cert.End = expired_cert.End.AddDate(0, -5, 0)
 }
