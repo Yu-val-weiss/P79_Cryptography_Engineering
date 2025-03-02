@@ -83,7 +83,10 @@ func (b *challengerClient) Challenge(data []byte) ([]byte, error) {
 
 	sig_b := ed25519.Sign(b.private, slices.Concat(data, g_y))
 
-	c_b := b.Certify()
+	c_b, err := b.Certify()
+	if err != nil {
+		return nil, fmt.Errorf("error certifiying client with authority: %v", err)
+	}
 	m_b := hMac(k_M, c_b.Cert.Marshal())
 
 	b.state = &challengerBegunState{
@@ -145,7 +148,10 @@ func (a *InitiatorClient) Respond(data []byte) ([]byte, error) {
 
 	sig_a := ed25519.Sign(a.private, g_x_g_y)
 
-	c_a := a.Certify()
+	c_a, err := a.Certify()
+	if err != nil {
+		return nil, fmt.Errorf("error certifiying client with authority: %v", err)
+	}
 	m_a := hMac(k_M, c_a.Cert.Marshal())
 
 	a.state = &completedState{k_S: k_S}

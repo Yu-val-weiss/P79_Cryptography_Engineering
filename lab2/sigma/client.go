@@ -54,13 +54,11 @@ func (c *baseClient) Register(ca *certauth.CertificateAuthority) *registeredClie
 	}
 }
 
+// convenience function for returns a [certauth.ValidatedCertificate] from the registered certificate authority
+//
 // should only be called after the client has been registered with the required certificate authority
-func (c *registeredClient) Certify() certauth.ValidatedCertificate {
-	val_cert, err := c.ca.Certify(c.Name)
-	if err != nil {
-		panic(fmt.Sprintf("could not certify client due to error: %v", err))
-	}
-	return val_cert
+func (c *registeredClient) Certify() (certauth.ValidatedCertificate, error) {
+	return c.ca.Certify(c.Name)
 }
 
 // States (interfaces and subtypes)
