@@ -7,7 +7,7 @@ import (
 )
 
 func TestSpakeSamePasswdGivesSameKey(t *testing.T) {
-	for i := range 50 {
+	for i := range 1_000 {
 		i := i
 		t.Run(fmt.Sprintf("SPAKE2 - Password: password%v", i), func(t *testing.T) {
 			a := NewClient(fmt.Sprintf("password%v", i))

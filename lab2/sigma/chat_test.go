@@ -18,7 +18,7 @@ func TestMessageToString(t *testing.T) {
 }
 
 func TestEstablishSecureChat(t *testing.T) {
-	for i := range 50 {
+	for i := range 1_000 {
 		i := i // capture i locally
 		t.Run(
 			fmt.Sprintf("Run%v", i), func(t *testing.T) {
@@ -48,7 +48,7 @@ func TestEstablishSecureChat(t *testing.T) {
 }
 
 func TestMessageSending(t *testing.T) {
-	for i := range 50 {
+	for i := range 1_000 {
 		i := i
 		t.Run(fmt.Sprintf("SendMessage%v", i), func(t *testing.T) {
 			t.Parallel()
