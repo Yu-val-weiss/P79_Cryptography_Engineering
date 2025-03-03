@@ -26,7 +26,27 @@ type registeredClient struct {
 	cert certauth.Certificate
 }
 
-// NewBaseClient creates a new instance of a BaseClient.
+// Creates a new instance of a [*baseClient].
+//
+// Usage:
+//
+//	ca := certauth.NewCertificateAuthority()
+//	alice := NewBaseClient("Alice")
+//	alice.Register(ca)
+//
+// to initiate a SIGMA protocol instance
+//
+//	alice_i := alice.AsInitator()
+//	alice_i.Initiate() // send this to another client
+//	alice_i.Respond(received_data) // send returned value to other client, input received from other client
+//	alice_i is now in finalised state, key can be retrieved with alice_i.SessionKey()
+//
+// to respond to an initiatation, assuming a [registeredClient] bob
+//
+//	bob_c := bob.AsChallenger()
+//	bob_c.Challenge(initiation_data) // input received from initiating client, send result back
+//	bob_c.Finalise(response_data) // response received from intiation client, nothing sent back
+//	bob_c now in finalised state, key can be retrieved with bob_c.SessionKey()
 func NewBaseClient(name string) *baseClient {
 	pub, priv, err := ed25519.GenerateKey(nil)
 	if err != nil {
@@ -71,10 +91,14 @@ type challengerState interface {
 
 // Initiator client states
 
+// base state for [initiatorClient], on initialisation with [registeredClient.AsInitiator]
 type initiatorBaseState struct{}
 
 func (s *initiatorBaseState) isInitiatorState() {}
 
+// second, begun state for [initiatorClient], after [initiatorClient.Initiate] returns
+//
+// stores required secrets x and g_x
 type initiatorBegunState struct {
 	x   []byte // private scalar used for public commitment g**x
 	g_x []byte // public commitment g**x
@@ -82,10 +106,14 @@ type initiatorBegunState struct {
 
 func (s *initiatorBegunState) isInitiatorState() {}
 
+// base state for [challengerClient], on initialisation with [registeredClient.AsChallenger]
 type challengerBaseState struct{}
 
 func (s *challengerBaseState) isChallengerState() {}
 
+// second, begun state for [challengerClient], after [challengerClient.Challenge] returns
+//
+// stores required secrets g_x, g_y, k_M, k_S
 type challengerBegunState struct {
 	g_x []byte // public commitment
 	g_y []byte // public challenge
@@ -95,7 +123,13 @@ type challengerBegunState struct {
 
 func (s *challengerBegunState) isChallengerState() {}
 
-// completed state represents a client that has completed the protocol, in either the initiator or challenger role
+// completed state represents a client that has completed the protocol
+//
+// shared between [initiatorClient] and [challengerClient]
+//
+// [initiatorClient] enters this state after [initiatorClient.Respond] returns
+//
+// [challengerClient] enters this state after [challengerClient.Finalise] returns
 type completedState struct {
 	k_S []byte // session key
 }
@@ -118,6 +152,7 @@ func (c *registeredClient) AsInitiator() *initiatorClient {
 	}
 }
 
+// convenience function for getting the key from a [completedState] within a client
 func getKeyFromCompletedState(state any) ([]byte, error) {
 	s, ok := state.(*completedState)
 	if !ok {

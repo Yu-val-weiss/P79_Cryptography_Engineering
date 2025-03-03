@@ -1,7 +1,6 @@
 package spake2
 
 import (
-	"crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
@@ -9,6 +8,7 @@ import (
 	"filippo.io/edwards25519"
 )
 
+// constants sourced from RFC
 var constM *edwards25519.Point  // canonical M point for SPAKE2 protocol, MUST NOT MODIFY
 var constN *edwards25519.Point  // canonical N point for SPAKE2 protocol, MUST NOT MODIFY
 var constH *edwards25519.Scalar // cofactor H encoded as a scalar for SPAKE2 protocol, MUST NOT MODIFY
@@ -41,17 +41,4 @@ func init() {
 	if err != nil {
 		panic(fmt.Sprintf("error initialising scalar h: %v", err))
 	}
-}
-
-// makeScalar generates a 32-byte [edwards25519.Scalar] value.
-func makeScalar() (*edwards25519.Scalar, error) {
-	scalar_bytes := make([]byte, 32)
-	if _, err := rand.Read(scalar_bytes); err != nil {
-		panic(fmt.Sprintf("failed to generate random scalar, err: %v", err))
-	}
-	scalar, err := edwards25519.NewScalar().SetBytesWithClamping(scalar_bytes)
-	if err != nil {
-		panic(fmt.Sprintf("failed to generate random scalar, err: %v", err))
-	}
-	return scalar, nil
 }

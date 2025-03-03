@@ -110,13 +110,13 @@ func TestVerifyCertificateFails(t *testing.T) {
 	if err != nil {
 		t.Errorf("expected nill error, got %v", err)
 	}
-	messed_cert := val_cert.Cert.clone()
+	messed_cert := val_cert.Cert.Clone()
 	messed_cert.Name = "Alicia"
 	inval_cert := ValidatedCertificate{messed_cert, val_cert.Sig}
 	if ca.VerifyCertificate(inval_cert) {
 		t.Errorf("expected to return false, since certificate did not match signature")
 	}
-	expired_cert := val_cert.Cert.clone()
+	expired_cert := val_cert.Cert.Clone()
 	expired_cert.Start = expired_cert.Start.AddDate(0, -5, 0)
 	expired_cert.End = expired_cert.End.AddDate(0, -5, 0)
 }

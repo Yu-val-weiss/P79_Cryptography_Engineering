@@ -21,6 +21,7 @@ func makeScalar() []byte {
 	return scalar
 }
 
+// performs the SHA256-based derivation of the MAC and session keys
 func deriveKeys(base []byte) (k_m, k_s []byte) {
 	hasher := sha256.New()
 	hasher.Write(slices.Concat(base, []byte("MAC")))
@@ -34,6 +35,7 @@ func deriveKeys(base []byte) (k_m, k_s []byte) {
 	return
 }
 
+// convenience function computing HMAC based on SHA256
 func hMac(key []byte, data []byte) []byte {
 	h_mac := hmac.New(sha256.New, key)
 	h_mac.Write(data)
@@ -41,6 +43,10 @@ func hMac(key []byte, data []byte) []byte {
 }
 
 // Initiate starts the SIGMA protocol and returns g^x
+//
+// State transitions:
+//
+//	[initatorBaseState] -> [initiatorBegunState]
 //
 // source: lecture slides
 func (a *initiatorClient) Initiate() ([]byte, error) {
@@ -60,6 +66,10 @@ func (a *initiatorClient) Initiate() ([]byte, error) {
 }
 
 // Challenge responds to an initiation with g^y and authentication data
+//
+// State transitions:
+//
+//	[challengerBaseState] -> [challengerBegunState]
 //
 // source: lecture slides
 func (b *challengerClient) Challenge(data []byte) ([]byte, error) {
@@ -109,6 +119,10 @@ func (b *challengerClient) Challenge(data []byte) ([]byte, error) {
 // Respond handles the challenger's response and returns the response message and an error if it exists
 //
 // The session key is stored in the client, and can be retrieved with [initiatorClient.SessionKey]
+//
+// State transitions:
+//
+//	[initiatorBegunState] -> [completedState]
 //
 // source: lecture slides
 func (a *initiatorClient) Respond(data []byte) ([]byte, error) {
@@ -162,6 +176,10 @@ func (a *initiatorClient) Respond(data []byte) ([]byte, error) {
 // Finalise verifies the initiator's response and returns an error if one has arisen (nil otherwise)
 //
 // The session key is stored in the client, and can be retrieved with [challengerClient.SessionKey]
+//
+// State transitions:
+//
+//	[challengerBegunState] -> [completedState]
 //
 // source: lecture slides
 func (b *challengerClient) Finalise(data []byte) error {

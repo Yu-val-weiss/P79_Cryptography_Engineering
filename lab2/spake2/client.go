@@ -14,7 +14,7 @@ type client struct {
 	state    clientState
 }
 
-// creates a new SPAKE2 client given a password
+// creates a new SPAKE2 client from a given string password
 func NewClient(password string) *client {
 	return &client{
 		password: []byte(password),
@@ -22,7 +22,7 @@ func NewClient(password string) *client {
 	}
 }
 
-// Retrieve shared key following SPAKE2 protcol, from final state
+// retrieve shared key upon completion of SPAKE2 protcol, from final state
 func (c *client) Key() ([]byte, error) {
 	state, ok := c.state.(*validatedState)
 	if !ok {
@@ -60,7 +60,7 @@ type derivedState struct {
 
 func (*derivedState) isState() {} // marker method for implementing [clientState] interface
 
-// validation has occured, now has the key
+// validation has occured, protocol is complete, key is stored
 type validatedState struct {
 	k_e []byte
 }

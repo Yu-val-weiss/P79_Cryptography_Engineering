@@ -15,6 +15,7 @@ type challengeMsg struct {
 	Mac         []byte                        `json:"mac"`       // Bob's HMAC µ_b
 }
 
+// marshal a [challengeMsg] to json bytes
 func (r challengeMsg) marshal() []byte {
 	data, err := json.Marshal(r)
 	if err != nil {
@@ -23,6 +24,7 @@ func (r challengeMsg) marshal() []byte {
 	return data
 }
 
+// convert json bytes to [challengeMsg]
 func unmarshalChallenge(data []byte) (challengeMsg, error) {
 	var chall challengeMsg
 	if err := json.Unmarshal(data, &chall); err != nil {
@@ -38,6 +40,7 @@ type responseMsg struct {
 	Mac         []byte                        `json:"mac"`  // Alice's HMAC µ_a
 }
 
+// marshal a [responseMsg] to json bytes
 func (r responseMsg) marshal() []byte {
 	data, err := json.Marshal(r)
 	if err != nil {
@@ -46,6 +49,7 @@ func (r responseMsg) marshal() []byte {
 	return data
 }
 
+// convert json bytes to [responseMsg]
 func unmarshalResponse(data []byte) (responseMsg, error) {
 	var resp responseMsg
 	if err := json.Unmarshal(data, &resp); err != nil {

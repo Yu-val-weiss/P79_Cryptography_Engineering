@@ -3,6 +3,7 @@ package spake2
 import (
 	"bytes"
 	"crypto/hmac"
+	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
 	"hash"
@@ -13,12 +14,25 @@ import (
 	"golang.org/x/crypto/hkdf"
 )
 
+// makeScalar generates a 32-byte [edwards25519.Scalar] value.
+func makeScalar() (*edwards25519.Scalar, error) {
+	scalar_bytes := make([]byte, 32)
+	if _, err := rand.Read(scalar_bytes); err != nil {
+		panic(fmt.Sprintf("failed to generate random scalar, err: %v", err))
+	}
+	scalar, err := edwards25519.NewScalar().SetBytesWithClamping(scalar_bytes)
+	if err != nil {
+		panic(fmt.Sprintf("failed to generate random scalar, err: %v", err))
+	}
+	return scalar, nil
+}
+
 // Initiate SPAKE2 protocol, returns pi and an error if one arose
 //
 // The boolean argument alice indicates which variant of the formulae to use.
 // This is hidden and the public methods which should be used are [client.InitiateAsAlice] and [client.InitiateAsBob]
 //
-// source: lecture slides
+// source: lecture slides, RFC
 func (c *client) initiate(alice bool) ([]byte, error) {
 	if _, ok := c.state.(*baseState); !ok {
 		return nil, fmt.Errorf("client must be in base state before initiating SPAKE2")
@@ -62,6 +76,10 @@ func (c *client) initiate(alice bool) ([]byte, error) {
 }
 
 // Initiate SPAKE2 protocol in the role of Alice, returns pi_a and an error if one arose
+//
+// State transitions:
+//
+//	[baseState] -> [initiatedState]
 func (c *client) InitiateAsAlice() ([]byte, error) {
 	return c.initiate(true)
 }
@@ -75,7 +93,11 @@ func (c *client) InitiateAsBob() ([]byte, error) {
 //
 // data is the [edwards25519.Point] encoded as []byte returned from opposing client's [client.Initiate]
 //
-// source: lecture slides
+// State transitions:
+//
+//	[initiatedState] -> [derivedState]
+//
+// source: lecture slides, RFC
 func (c *client) Derive(data []byte) ([]byte, error) {
 	state, ok := c.state.(*initiatedState)
 	if !ok {
@@ -150,11 +172,16 @@ func (c *client) Derive(data []byte) ([]byte, error) {
 }
 
 // Final stage of protocol
+//
 // Data is mu_x receive from other side
 //
-// If nil is returned, then K_e is stored in the client state and can be retrieved with [client.Key]
+// If nil error is returned, then K_e is stored in the client state and can be retrieved with [client.Key]
 //
-// source: lecture slides
+// State transitions:
+//
+//	[derivedState] -> [validatedState]
+//
+// source: lecture slides, RFC
 func (c *client) Validate(data []byte) error {
 	state, ok := c.state.(*derivedState)
 	if !ok {

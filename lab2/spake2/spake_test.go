@@ -10,6 +10,7 @@ func TestSpakeSamePasswdGivesSameKey(t *testing.T) {
 	for i := range 1_000 {
 		i := i
 		t.Run(fmt.Sprintf("SPAKE2 - Password: password%v", i), func(t *testing.T) {
+			t.Parallel()
 			a := NewClient(fmt.Sprintf("password%v", i))
 			b := NewClient(fmt.Sprintf("password%v", i))
 			pi_a, err := a.InitiateAsAlice()

@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+// Defines a Message sent with SIGMA-powered chat client
 type Message struct {
 	Sender    string    `json:"sender"`
 	Recipient string    `json:"recipient"`
@@ -17,15 +18,20 @@ type Message struct {
 	Timestamp time.Time `json:"ts"`
 }
 
+// convenience init function for a new [Message]
 func NewMessage(sender, recipient, content string) Message {
 	return Message{sender, recipient, content, time.Now()}
 }
 
+// converts a [Message] to string
+//
+//	// format example
+//	[Fri Feb 28 19:02:05] Alice -> Bob: Hi Bob!
 func (m Message) String() string {
 	return fmt.Sprintf("[%v] %v -> %v: %v", m.Timestamp.Format("Mon Jan 02 15:04:05"), m.Sender, m.Recipient, m.Content)
 }
 
-// hidden helper struct for encrypted messages
+// hidden helper struct for encrypted messages, used for encoding/decoding to bytes
 type encryptedMessage struct {
 	IV         []byte `json:"iv"`
 	Ciphertext []byte `json:"ciphertext"`
@@ -40,7 +46,9 @@ type chatSession struct {
 	SessionKey []byte // SIGMA-derived session key (32 bytes)
 }
 
-// create AES with Galois Counter Mode cipher
+// create a symmetric cipher instance
+//
+// uses AES with Galois Counter Mode
 func createGCM(session_key []byte) (cipher.AEAD, error) {
 	// create cipher block
 	block, err := aes.NewCipher(session_key)
@@ -58,6 +66,8 @@ func createGCM(session_key []byte) (cipher.AEAD, error) {
 }
 
 // encrypt a message using AES with Galois Counter Mode for symmetric encryption
+//
+// returns data in []byte form that should be 'sent'
 func (cs *chatSession) encrypt(msg Message) ([]byte, error) {
 	msg_data, err := json.Marshal(msg)
 	if err != nil {
@@ -85,6 +95,8 @@ func (cs *chatSession) encrypt(msg Message) ([]byte, error) {
 }
 
 // decrypt ciphertext with AES using Galois Counter Mode
+//
+// returns a [Message]
 func (cs *chatSession) decrypt(data []byte) (Message, error) {
 	var encMsg encryptedMessage
 	var msg Message
@@ -110,19 +122,18 @@ func (cs *chatSession) decrypt(data []byte) (Message, error) {
 	return msg, nil
 }
 
-// SendMessage encrypts and "sends" a message, by returning the encrypted data
+// Encrypts and "sends" a message, by returning the encrypted data
 func (cs *chatSession) SendMessage(content string) ([]byte, error) {
 	return cs.encrypt(NewMessage(cs.Local, cs.Remote, content))
 }
 
+// "receives" a message, and Decrypts it, returning the [Message] struct represented
 func (cs *chatSession) ReceiveMessage(data []byte) (Message, error) {
 	return cs.decrypt(data)
 }
 
 // Sets up a secure chat session, returns each party's chat session and an error if one arises.
 // This essentially simulates a SIGMA exchange
-//
-// assumes both intiator and challenger are already registered to the certificate authority
 func EstablishSecureChat(initiator *initiatorClient, challenger *challengerClient) (*chatSession, *chatSession, error) {
 	if initiator.ca != challenger.ca {
 		return nil, nil, fmt.Errorf("both clients should be registered with the same authority")
