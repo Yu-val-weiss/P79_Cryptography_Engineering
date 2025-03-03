@@ -10,7 +10,6 @@ import (
 
 	certauth "github.com/yu-val-weiss/p79_cryptography_engineering/lab2/cert_auth"
 	"github.com/yu-val-weiss/p79_cryptography_engineering/lab2/sigma"
-	"github.com/yu-val-weiss/p79_cryptography_engineering/lab2/spake2"
 	"golang.org/x/crypto/curve25519"
 )
 
@@ -62,7 +61,7 @@ func main() {
 	// fmt.Printf("%#v\n", ca)
 
 	// fmt.Println(sig)
-	_ = spake2.Client{}
+	// _ = spake2.Client{}
 
 	ca = certauth.NewAuthority()
 	alice_reg := sigma.NewBaseClient("alice").Register(ca)
@@ -86,4 +85,5 @@ func main() {
 	if dec.Content != msg {
 		fmt.Printf("expected content to be %v, but got %v", msg, dec.Content)
 	}
+
 }
