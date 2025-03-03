@@ -103,7 +103,7 @@ func (b *challengerClient) Challenge(data []byte) ([]byte, error) {
 		Mac:         m_b,
 	}
 
-	return msg.Marshal(), nil
+	return msg.marshal(), nil
 }
 
 // Respond handles the challenger's response and returns the response message and an error if it exists
@@ -156,7 +156,7 @@ func (a *initiatorClient) Respond(data []byte) ([]byte, error) {
 
 	a.state = &completedState{k_S: k_S}
 
-	return responseMsg{Certificate: c_a, Sig: sig_a, Mac: m_a}.Marshal(), nil
+	return responseMsg{Certificate: c_a, Sig: sig_a, Mac: m_a}.marshal(), nil
 }
 
 // Finalise verifies the initiator's response and returns an error if one has arisen (nil otherwise)
