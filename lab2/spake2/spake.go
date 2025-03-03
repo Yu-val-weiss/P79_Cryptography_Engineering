@@ -16,10 +16,10 @@ import (
 // Initiate SPAKE-2 protocol, returns pi and an error if one arose
 //
 // The boolean argument alice indicates which variant of the formulae to use.
-// This is hidden and the public methods which should be used are [Client.InitiateAsAlice] and [Client.InitiateAsBob]
+// This is hidden and the public methods which should be used are [client.InitiateAsAlice] and [client.InitiateAsBob]
 //
 // source: lecture slides
-func (c *Client) initiate(alice bool) ([]byte, error) {
+func (c *client) initiate(alice bool) ([]byte, error) {
 	if _, ok := c.state.(*baseState); !ok {
 		return nil, fmt.Errorf("client must be in base state before initiating SPAKE2")
 	}
@@ -62,21 +62,21 @@ func (c *Client) initiate(alice bool) ([]byte, error) {
 }
 
 // Initiate SPAKE-2 protocol in the role of Alice, returns pi_a and an error if one arose
-func (c *Client) InitiateAsAlice() ([]byte, error) {
+func (c *client) InitiateAsAlice() ([]byte, error) {
 	return c.initiate(true)
 }
 
 // Initiate SPAKE-2 protocol in the role of Bob, returns pi_b and an error if one arose
-func (c *Client) InitiateAsBob() ([]byte, error) {
+func (c *client) InitiateAsBob() ([]byte, error) {
 	return c.initiate(false)
 }
 
 // Second stage of protocol
 //
-// data is the [edwards25519.Point] encoded as []byte returned from opposing client's [Client.Initiate]
+// data is the [edwards25519.Point] encoded as []byte returned from opposing client's [client.Initiate]
 //
 // source: lecture slides
-func (c *Client) Derive(data []byte) ([]byte, error) {
+func (c *client) Derive(data []byte) ([]byte, error) {
 	state, ok := c.state.(*initiatedState)
 	if !ok {
 		return nil, fmt.Errorf("client must be in initiated state before returning a challenge")
@@ -152,10 +152,10 @@ func (c *Client) Derive(data []byte) ([]byte, error) {
 // Final stage of protocol
 // Data is mu_x receive from other side
 //
-// If nil is returned, then K_e is stored in the client state and can be retrieved with [Client.Key]
+// If nil is returned, then K_e is stored in the client state and can be retrieved with [client.Key]
 //
 // source: lecture slides
-func (c *Client) Validate(data []byte) error {
+func (c *client) Validate(data []byte) error {
 	state, ok := c.state.(*derivedState)
 	if !ok {
 		return fmt.Errorf("client must be in challenge state before finalising")
