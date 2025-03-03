@@ -6,7 +6,7 @@ import (
 	"filippo.io/edwards25519"
 )
 
-// SPAKE-2 client struct
+// SPAKE2 client struct
 //
 // unexported so can only create using [NewClient]
 type client struct {
@@ -14,7 +14,7 @@ type client struct {
 	state    clientState
 }
 
-// creates a new SPAKE-2 client given a password
+// creates a new SPAKE2 client given a password
 func NewClient(password string) *client {
 	return &client{
 		password: []byte(password),

@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/hkdf"
 )
 
-// Initiate SPAKE-2 protocol, returns pi and an error if one arose
+// Initiate SPAKE2 protocol, returns pi and an error if one arose
 //
 // The boolean argument alice indicates which variant of the formulae to use.
 // This is hidden and the public methods which should be used are [client.InitiateAsAlice] and [client.InitiateAsBob]
@@ -61,12 +61,12 @@ func (c *client) initiate(alice bool) ([]byte, error) {
 	return pi.Bytes(), nil
 }
 
-// Initiate SPAKE-2 protocol in the role of Alice, returns pi_a and an error if one arose
+// Initiate SPAKE2 protocol in the role of Alice, returns pi_a and an error if one arose
 func (c *client) InitiateAsAlice() ([]byte, error) {
 	return c.initiate(true)
 }
 
-// Initiate SPAKE-2 protocol in the role of Bob, returns pi_b and an error if one arose
+// Initiate SPAKE2 protocol in the role of Bob, returns pi_b and an error if one arose
 func (c *client) InitiateAsBob() ([]byte, error) {
 	return c.initiate(false)
 }

@@ -11,7 +11,7 @@ import (
 
 var constM *edwards25519.Point  // canonical M point for SPAKE2 protocol, MUST NOT MODIFY
 var constN *edwards25519.Point  // canonical N point for SPAKE2 protocol, MUST NOT MODIFY
-var constH *edwards25519.Scalar // cofactor H encoded as a scalar for SPAKE-2 protocol, MUST NOT MODIFY
+var constH *edwards25519.Scalar // cofactor H encoded as a scalar for SPAKE2 protocol, MUST NOT MODIFY
 
 func init() {
 	const m_hex string = "d048032c6ea0b6d697ddc2e86bda85a33adac920f1bf18e1b0c6d166a5cecdaf"
