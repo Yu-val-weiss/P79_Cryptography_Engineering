@@ -86,5 +86,4 @@ func main() {
 	if dec.Content != msg {
 		fmt.Printf("expected content to be %v, but got %v", msg, dec.Content)
 	}
-
 }

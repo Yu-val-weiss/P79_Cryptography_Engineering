@@ -61,21 +61,25 @@ type ValidatedCertificate struct {
 	Sig  []byte // signature (on marhsalled version of cert)
 }
 
-type CertificateAuthority struct {
+// publicly exported certificate authority type
+type CertificateAuthority = *certAuth
+
+// hidden struct implementation
+type certAuth struct {
 	regcerts    map[string]Certificate
-	AuthPubKey  ed25519.PublicKey
-	authprivkey ed25519.PrivateKey
+	authPubKey  ed25519.PublicKey
+	authPrivKey ed25519.PrivateKey
 }
 
-func NewAuthority() *CertificateAuthority {
+func NewAuthority() CertificateAuthority {
 	pub, priv, err := ed25519.GenerateKey(nil)
 	if err != nil {
 		panic(fmt.Sprintf("failed to instantiate authority due to key gen error %v", err))
 	}
-	return &CertificateAuthority{
+	return &certAuth{
 		regcerts:    make(map[string]Certificate),
-		AuthPubKey:  pub,
-		authprivkey: priv,
+		authPubKey:  pub,
+		authPrivKey: priv,
 	}
 }
 
@@ -83,7 +87,7 @@ func NewAuthority() *CertificateAuthority {
 //
 // if the registration already exists and is still valid, and this method is called with the same public key
 // then behaviour is idempotent and simply returns the existing certificate, without extending the validity
-func (ca *CertificateAuthority) Register(name string, public_key ed25519.PublicKey) Certificate {
+func (ca CertificateAuthority) Register(name string, public_key ed25519.PublicKey) Certificate {
 	exist_cert, exists := ca.regcerts[name]
 	if exists && bytes.Equal(exist_cert.PublicKey, public_key) {
 		return exist_cert.clone() // cannot re-register with the same public key, so return existing one
@@ -98,7 +102,7 @@ func (ca *CertificateAuthority) Register(name string, public_key ed25519.PublicK
 
 // returns [ValidatedCertificate] and (possibly nil) error
 // should be unmarshalled with [UnmarshalCertificate].
-func (ca *CertificateAuthority) Certify(name string) (ValidatedCertificate, error) {
+func (ca CertificateAuthority) Certify(name string) (ValidatedCertificate, error) {
 	cert, ok := ca.regcerts[name]
 	if !ok {
 		return ValidatedCertificate{}, fmt.Errorf("name '%v' does not have a registered certificate", name)
@@ -110,14 +114,14 @@ func (ca *CertificateAuthority) Certify(name string) (ValidatedCertificate, erro
 	if err != nil {
 		return ValidatedCertificate{}, fmt.Errorf("could not encode certificate to JSON, error: %v", err)
 	}
-	sig := ed25519.Sign(ca.authprivkey, cert_json)
+	sig := ed25519.Sign(ca.authPrivKey, cert_json)
 	return ValidatedCertificate{Cert: cert, Sig: sig}, nil
 }
 
-func (ca *CertificateAuthority) VerifyCertificate(vc ValidatedCertificate) bool {
+func (ca CertificateAuthority) VerifyCertificate(vc ValidatedCertificate) bool {
 	// check if the certificate is registered
 	storedCert, exists := ca.regcerts[vc.Cert.Name]
 
 	// check certificate matches registry, and is not expired, and the signature matches
-	return exists && vc.Cert.equal(storedCert) && time.Now().Before(vc.Cert.End) && ed25519.Verify(ca.AuthPubKey, vc.Cert.Marshal(), vc.Sig)
+	return exists && vc.Cert.equal(storedCert) && time.Now().Before(vc.Cert.End) && ed25519.Verify(ca.authPubKey, vc.Cert.Marshal(), vc.Sig)
 }

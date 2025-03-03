@@ -43,7 +43,7 @@ func hMac(key []byte, data []byte) []byte {
 // Initiate starts the SIGMA protocol and returns g^x
 //
 // source: lecture slides
-func (a *InitiatorClient) Initiate() ([]byte, error) {
+func (a *initiatorClient) Initiate() ([]byte, error) {
 	if _, ok := a.state.(*initiatorBaseState); !ok {
 		return nil, fmt.Errorf("client must be in base state before initiating")
 	}
@@ -96,7 +96,7 @@ func (b *challengerClient) Challenge(data []byte) ([]byte, error) {
 		k_S: k_S,
 	}
 
-	msg := ChallengeMsg{
+	msg := challengeMsg{
 		Challenge:   g_y,
 		Certificate: c_b,
 		Sig:         sig_b,
@@ -108,15 +108,15 @@ func (b *challengerClient) Challenge(data []byte) ([]byte, error) {
 
 // Respond handles the challenger's response and returns the response message and an error if it exists
 //
-// The session key is stored in the client, and can be retrieved with [InitiatorClient.SessionKey]
+// The session key is stored in the client, and can be retrieved with [initiatorClient.SessionKey]
 //
 // source: lecture slides
-func (a *InitiatorClient) Respond(data []byte) ([]byte, error) {
+func (a *initiatorClient) Respond(data []byte) ([]byte, error) {
 	state, ok := a.state.(*initiatorBegunState)
 	if !ok {
 		return nil, fmt.Errorf("client must be in intermediate InitiatorBegunState to call this method, was in %T", a.state)
 	}
-	challenge, err := UnmarshalChallenge(data)
+	challenge, err := unmarshalChallenge(data)
 	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal challenge")
 	}
@@ -156,7 +156,7 @@ func (a *InitiatorClient) Respond(data []byte) ([]byte, error) {
 
 	a.state = &completedState{k_S: k_S}
 
-	return ResponseMsg{Certificate: c_a, Sig: sig_a, Mac: m_a}.Marshal(), nil
+	return responseMsg{Certificate: c_a, Sig: sig_a, Mac: m_a}.Marshal(), nil
 }
 
 // Finalise verifies the initiator's response and returns an error if one has arisen (nil otherwise)
@@ -170,7 +170,7 @@ func (b *challengerClient) Finalise(data []byte) error {
 		return fmt.Errorf("client not in intermediate ChallengerBegunState to call this method, was in %T", state)
 	}
 
-	response, err := UnmarshalResponse(data)
+	response, err := unmarshalResponse(data)
 	if err != nil {
 		return fmt.Errorf("could not unmarshal response data")
 	}

@@ -3,7 +3,6 @@ package sigma
 import (
 	"crypto/ed25519"
 	"fmt"
-	"slices"
 
 	certauth "github.com/yu-val-weiss/p79_cryptography_engineering/lab2/cert_auth"
 )
@@ -11,9 +10,10 @@ import (
 // base client contains shared functionality
 //
 // hidden so cannot construct manually, only through [NewBaseClient]
+// all fields are hidden to avoid manual user modification
 type baseClient struct {
-	Name    string
-	Public  ed25519.PublicKey
+	name    string
+	public  ed25519.PublicKey
 	private ed25519.PrivateKey
 }
 
@@ -21,8 +21,8 @@ type baseClient struct {
 //
 // hidden so cannot construct manually, only through promotion of [baseClient] with [baseClient.Register]
 type registeredClient struct {
-	baseClient
-	ca   *certauth.CertificateAuthority
+	*baseClient
+	ca   certauth.CertificateAuthority
 	cert certauth.Certificate
 }
 
@@ -32,25 +32,21 @@ func NewBaseClient(name string) *baseClient {
 	if err != nil {
 		panic(fmt.Sprintf("could not initialise client due to key gen error: %v", err))
 	}
-	return &baseClient{Name: name, Public: pub, private: priv}
+	return &baseClient{name: name, public: pub, private: priv}
 }
 
 // Register a client with a certificate authority, ca must not be nil, will panic if so.
 //
 // Returns [registeredClient], a promoted type that guarantees that the client is registered to the given [certauth.CertificateAuthority]
-func (c *baseClient) Register(ca *certauth.CertificateAuthority) *registeredClient {
+func (c *baseClient) Register(ca certauth.CertificateAuthority) *registeredClient {
 	if ca == nil {
 		panic("cannot register client to a nil certificate authority")
 	}
-	cert := ca.Register(c.Name, c.Public)
+	cert := ca.Register(c.name, c.public)
 	return &registeredClient{
-		baseClient: baseClient{
-			Name:    c.Name,
-			Public:  slices.Clone(c.Public),  // defensive clone
-			private: slices.Clone(c.private), // defensive clone
-		},
-		ca:   ca,
-		cert: cert,
+		baseClient: c,
+		ca:         ca,
+		cert:       cert,
 	}
 }
 
@@ -58,7 +54,7 @@ func (c *baseClient) Register(ca *certauth.CertificateAuthority) *registeredClie
 //
 // should only be called after the client has been registered with the required certificate authority
 func (c *registeredClient) Certify() (certauth.ValidatedCertificate, error) {
-	return c.ca.Certify(c.Name)
+	return c.ca.Certify(c.name)
 }
 
 // States (interfaces and subtypes)
@@ -108,15 +104,15 @@ func (s *completedState) isInitiatorState() {}
 
 func (s *completedState) isChallengerState() {}
 
-// InitiatorClient represents the SIGMA protocol initiator (Alice)
-type InitiatorClient struct {
+// initiatorClient represents the SIGMA protocol initiator (Alice)
+type initiatorClient struct {
 	*registeredClient
 	state initiatorState
 }
 
 // AsInitiator converts a BaseClient to an InitiatorClient
-func (c *registeredClient) AsInitiator() *InitiatorClient {
-	return &InitiatorClient{
+func (c *registeredClient) AsInitiator() *initiatorClient {
+	return &initiatorClient{
 		registeredClient: c,
 		state:            &initiatorBaseState{},
 	}
@@ -132,7 +128,7 @@ func getKeyFromCompletedState(state any) ([]byte, error) {
 
 // retrieves session key from an initiator client
 // only returns if state is [completedState]
-func (c *InitiatorClient) SessionKey() ([]byte, error) {
+func (c *initiatorClient) SessionKey() ([]byte, error) {
 	return getKeyFromCompletedState(c.state)
 }
 

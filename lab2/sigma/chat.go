@@ -123,7 +123,7 @@ func (cs *chatSession) ReceiveMessage(data []byte) (Message, error) {
 // This essentially simulates a SIGMA exchange
 //
 // assumes both intiator and challenger are already registered to the certificate authority
-func EstablishSecureChat(initiator *InitiatorClient, challenger *challengerClient) (*chatSession, *chatSession, error) {
+func EstablishSecureChat(initiator *initiatorClient, challenger *challengerClient) (*chatSession, *chatSession, error) {
 	if initiator.ca != challenger.ca {
 		return nil, nil, fmt.Errorf("both clients should be registered with the same authority")
 	}
@@ -159,8 +159,8 @@ func EstablishSecureChat(initiator *InitiatorClient, challenger *challengerClien
 		return nil, nil, fmt.Errorf("could not get session key from challenger: %v", err)
 	}
 
-	initiatorSession := chatSession{initiator.Name, challenger.Name, init_key}
-	challengerSession := chatSession{challenger.Name, initiator.Name, chall_key}
+	initiatorSession := chatSession{initiator.name, challenger.name, init_key}
+	challengerSession := chatSession{challenger.name, initiator.name, chall_key}
 
 	return &initiatorSession, &challengerSession, nil
 }
