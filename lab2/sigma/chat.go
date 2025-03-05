@@ -37,13 +37,16 @@ type encryptedMessage struct {
 	Ciphertext []byte `json:"ciphertext"`
 }
 
+// exported pointer type for a chat session, used to send and receive messages
+type ChatSession = *chatSession
+
 // struct for a chatSession, through which chatting occurs
 //
 // unexported so cannot create one manually, only through [EstablishSecureChat]
 type chatSession struct {
-	Local      string // name of local client
-	Remote     string // name of remote client
-	SessionKey []byte // SIGMA-derived session key (32 bytes)
+	local      string // name of local client
+	remote     string // name of remote client
+	sessionKey []byte // SIGMA-derived session key (32 bytes)
 }
 
 // create a symmetric cipher instance
@@ -74,7 +77,7 @@ func (cs *chatSession) encrypt(msg Message) ([]byte, error) {
 		return nil, fmt.Errorf("error serialising message : %v", err) // shouldn't happen
 	}
 
-	gcm, err := createGCM(cs.SessionKey)
+	gcm, err := createGCM(cs.sessionKey)
 	if err != nil {
 		return nil, err // shouldn't happen
 	}
@@ -105,7 +108,7 @@ func (cs *chatSession) decrypt(data []byte) (Message, error) {
 		return msg, fmt.Errorf("error deserialising encrypted message: %v", err)
 	}
 
-	gcm, err := createGCM(cs.SessionKey)
+	gcm, err := createGCM(cs.sessionKey)
 	if err != nil {
 		return msg, err
 	}
@@ -124,7 +127,7 @@ func (cs *chatSession) decrypt(data []byte) (Message, error) {
 
 // Encrypts and "sends" a message, by returning the encrypted data
 func (cs *chatSession) SendMessage(content string) ([]byte, error) {
-	return cs.encrypt(NewMessage(cs.Local, cs.Remote, content))
+	return cs.encrypt(NewMessage(cs.local, cs.remote, content))
 }
 
 // "receives" a message, and Decrypts it, returning the [Message] struct represented
@@ -134,7 +137,7 @@ func (cs *chatSession) ReceiveMessage(data []byte) (Message, error) {
 
 // Sets up a secure chat session, returns each party's chat session and an error if one arises.
 // This essentially simulates a SIGMA exchange
-func EstablishSecureChat(initiator *initiatorClient, challenger *challengerClient) (*chatSession, *chatSession, error) {
+func EstablishSecureChat(initiator *initiatorClient, challenger *challengerClient) (ChatSession, ChatSession, error) {
 	if initiator.ca != challenger.ca {
 		return nil, nil, fmt.Errorf("both clients should be registered with the same authority")
 	}

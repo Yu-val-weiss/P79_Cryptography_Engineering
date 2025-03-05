@@ -38,14 +38,14 @@ func TestEstablishSecureChat(t *testing.T) {
 				if err != nil {
 					t.Errorf("should not return an error, but returned %v", err)
 				}
-				if in_s.Local != "alice" && in_s.Remote != "bob" {
-					t.Errorf("incorrect local and remote names, got %v and %v", in_s.Local, in_s.Remote)
+				if in_s.local != "alice" && in_s.remote != "bob" {
+					t.Errorf("incorrect local and remote names, got %v and %v", in_s.local, in_s.remote)
 				}
-				if ch_s.Local != "bob" && ch_s.Remote != "alice" {
-					t.Errorf("incorrect local and remote names, got %v and %v", ch_s.Local, ch_s.Remote)
+				if ch_s.local != "bob" && ch_s.remote != "alice" {
+					t.Errorf("incorrect local and remote names, got %v and %v", ch_s.local, ch_s.remote)
 				}
-				if !bytes.Equal(in_s.SessionKey, ch_s.SessionKey) {
-					t.Errorf("session keys should be equal, got:\n%v\n%v", in_s.SessionKey, ch_s.SessionKey)
+				if !bytes.Equal(in_s.sessionKey, ch_s.sessionKey) {
+					t.Errorf("session keys should be equal, got:\n%v\n%v", in_s.sessionKey, ch_s.sessionKey)
 				}
 
 			},
