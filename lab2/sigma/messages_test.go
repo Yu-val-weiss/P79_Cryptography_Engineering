@@ -9,7 +9,7 @@ func TestUnmarshalChallengeError(t *testing.T) {
 }
 
 func TestUnmarshalResponseError(t *testing.T) {
-	if _, err := unmarshalResponse([]byte("invalid")); err == nil {
+	if _, err := unmarshal[responseMsg]([]byte("invalid")); err == nil {
 		t.Errorf("expected error about impossible to unmarshal, got nil error")
 	}
 }

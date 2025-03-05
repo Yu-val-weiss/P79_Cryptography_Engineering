@@ -113,7 +113,7 @@ func (b *challengerClient) Challenge(data []byte) ([]byte, error) {
 		Mac:         m_b,
 	}
 
-	return msg.marshal(), nil
+	return msg.Marshal(), nil
 }
 
 // Respond handles the challenger's response and returns the response message and an error if it exists
@@ -137,7 +137,7 @@ func (a *initiatorClient) Respond(data []byte) ([]byte, error) {
 
 	val_cert := challenge.Certificate
 
-	if !a.ca.VerifyCertificate(val_cert) {
+	if !a.ca.VerifyCertificate(val_cert.Marshal()) {
 		return nil, fmt.Errorf("could not verify certificate with CA")
 	}
 
@@ -170,7 +170,7 @@ func (a *initiatorClient) Respond(data []byte) ([]byte, error) {
 
 	a.state = &completedState{k_S: k_S}
 
-	return responseMsg{Certificate: c_a, Sig: sig_a, Mac: m_a}.marshal(), nil
+	return responseMsg{Certificate: c_a, Sig: sig_a, Mac: m_a}.Marshal(), nil
 }
 
 // Finalise verifies the initiator's response and returns an error if one has arisen (nil otherwise)
@@ -188,14 +188,14 @@ func (b *challengerClient) Finalise(data []byte) error {
 		return fmt.Errorf("client not in intermediate ChallengerBegunState to call this method, was in %T", state)
 	}
 
-	response, err := unmarshalResponse(data)
+	response, err := unmarshal[responseMsg](data)
 	if err != nil {
 		return fmt.Errorf("could not unmarshal response data")
 	}
 
 	val_cert := response.Certificate
 
-	if !b.ca.VerifyCertificate(val_cert) {
+	if !b.ca.VerifyCertificate(val_cert.Marshal()) {
 		return fmt.Errorf("could not verify certificate with CA")
 	}
 

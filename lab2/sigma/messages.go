@@ -7,6 +7,9 @@ import (
 	certauth "github.com/yu-val-weiss/p79_cryptography_engineering/lab2/cert_auth"
 )
 
+// internal interface defining the data structs that are sent to/from the certificate authority
+type message interface{ Marshal() []byte }
+
 // internal struct defining challenge message (Bob -> Alice) for SIGMA protocol
 type challengeMsg struct {
 	Challenge   []byte                        `json:"challenge"` // Bob's challenge g**y to Alice's commitment g**x
@@ -15,8 +18,8 @@ type challengeMsg struct {
 	Mac         []byte                        `json:"mac"`       // Bob's HMAC µ_b
 }
 
-// marshal a [challengeMsg] to json bytes
-func (r challengeMsg) marshal() []byte {
+// Marshal a [challengeMsg] to json bytes
+func (r challengeMsg) Marshal() []byte {
 	data, err := json.Marshal(r)
 	if err != nil {
 		panic("could not marshal commitment message") // should never happen
@@ -40,8 +43,8 @@ type responseMsg struct {
 	Mac         []byte                        `json:"mac"`  // Alice's HMAC µ_a
 }
 
-// marshal a [responseMsg] to json bytes
-func (r responseMsg) marshal() []byte {
+// Marshal a [responseMsg] to json bytes
+func (r responseMsg) Marshal() []byte {
 	data, err := json.Marshal(r)
 	if err != nil {
 		panic("could not marshal response message") // should never happen
@@ -49,11 +52,11 @@ func (r responseMsg) marshal() []byte {
 	return data
 }
 
-// convert json bytes to [responseMsg]
-func unmarshalResponse(data []byte) (responseMsg, error) {
-	var resp responseMsg
-	if err := json.Unmarshal(data, &resp); err != nil {
-		return resp, fmt.Errorf("could not unmarshall JSON, error: %v", err)
+// convert json bytes to [message] (either [challengeMsg] or [responseMsg])
+func unmarshal[T message](data []byte) (T, error) {
+	var msg T
+	if err := json.Unmarshal(data, &msg); err != nil {
+		return msg, fmt.Errorf("could not unmarshall JSON, error: %v", err)
 	}
-	return resp, nil
+	return msg, nil
 }

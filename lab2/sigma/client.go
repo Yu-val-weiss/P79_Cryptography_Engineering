@@ -62,7 +62,11 @@ func (c *baseClient) Register(ca certauth.CertificateAuthority) *registeredClien
 	if ca == nil {
 		panic("cannot register client to a nil certificate authority")
 	}
-	cert := ca.Register(c.name, c.public)
+	reg_req := certauth.MakeRegistrationRequest(c.name, c.public)
+	cert, err := certauth.Unmarshal[certauth.Certificate](ca.Register(reg_req))
+	if err != nil {
+		return nil
+	}
 	return &registeredClient{
 		baseClient: c,
 		ca:         ca,
@@ -70,11 +74,15 @@ func (c *baseClient) Register(ca certauth.CertificateAuthority) *registeredClien
 	}
 }
 
-// convenience function for returns a [certauth.ValidatedCertificate] from the registered certificate authority
+// convenience function for getting a [certauth.ValidatedCertificate] from the registered certificate authority
 //
 // should only be called after the client has been registered with the required certificate authority
 func (c *registeredClient) Certify() (certauth.ValidatedCertificate, error) {
-	return c.ca.Certify(c.name)
+	data, err := c.ca.Certify(c.name)
+	if err != nil {
+		return certauth.ValidatedCertificate{}, err
+	}
+	return certauth.Unmarshal[certauth.ValidatedCertificate](data)
 }
 
 // States (interfaces and subtypes)

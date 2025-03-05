@@ -175,7 +175,7 @@ func TestSigmaErrors(t *testing.T) {
 	chall_msg.Mac[1] -= 1
 	chall_msg.Mac[2] -= 2
 
-	if _, err := alice.Respond(chall_msg.marshal()); err == nil {
+	if _, err := alice.Respond(chall_msg.Marshal()); err == nil {
 		t.Errorf("expected error about MAC, got nil")
 	}
 
@@ -185,7 +185,7 @@ func TestSigmaErrors(t *testing.T) {
 	chall_msg.Sig[0] -= 1
 	chall_msg.Sig[1] -= 2
 
-	if _, err := alice.Respond(chall_msg.marshal()); err == nil {
+	if _, err := alice.Respond(chall_msg.Marshal()); err == nil {
 		t.Errorf("expected error about signature, got nil")
 	}
 
@@ -214,7 +214,7 @@ func TestSigmaErrors(t *testing.T) {
 		t.Errorf("expected error about verifying certificate")
 	}
 
-	resp_msg, err := unmarshalResponse(resp)
+	resp_msg, err := unmarshal[responseMsg](resp)
 	if err != nil {
 		t.Errorf("did not expect error unmarshalling, got %v", err)
 	}
@@ -225,7 +225,7 @@ func TestSigmaErrors(t *testing.T) {
 	resp_msg.Mac[0] -= 1
 	resp_msg.Mac[1] -= 2
 
-	if bob.Finalise(resp_msg.marshal()) == nil {
+	if bob.Finalise(resp_msg.Marshal()) == nil {
 		t.Errorf("expected error about mac, got nil")
 	}
 
@@ -235,7 +235,7 @@ func TestSigmaErrors(t *testing.T) {
 	resp_msg.Sig[0] -= 1
 	resp_msg.Sig[1] -= 2
 
-	if bob.Finalise(resp_msg.marshal()) == nil {
+	if bob.Finalise(resp_msg.Marshal()) == nil {
 		t.Errorf("expected error about sig, got nil")
 	}
 

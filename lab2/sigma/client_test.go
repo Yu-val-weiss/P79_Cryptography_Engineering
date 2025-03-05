@@ -19,7 +19,8 @@ func TestRegisterClient(t *testing.T) {
 	c := NewBaseClient("alice")
 	ca := certauth.NewAuthority()
 	rc := c.Register(ca)
-	ca_cert, _ := ca.Certify("alice")
+	ca_cert_data, _ := ca.Certify("alice")
+	ca_cert, _ := certauth.Unmarshal[certauth.ValidatedCertificate](ca_cert_data)
 	if !bytes.Equal(rc.cert.PublicKey, ca_cert.Cert.PublicKey) {
 		t.Errorf("expected certificates to be the same")
 	}
