@@ -10,6 +10,7 @@ import (
 
 	certauth "github.com/yu-val-weiss/p79_cryptography_engineering/lab2/cert_auth"
 	"github.com/yu-val-weiss/p79_cryptography_engineering/lab2/sigma"
+	"github.com/yu-val-weiss/p79_cryptography_engineering/lab2/sigmachat"
 	"golang.org/x/crypto/curve25519"
 )
 
@@ -68,7 +69,7 @@ func main() {
 	bob_reg, _ := sigma.NewBaseClient("bob").Register(ca)
 	alice := alice_reg.AsInitiator()
 	bob := bob_reg.AsChallenger()
-	alice_session, bob_session, err := sigma.EstablishSecureChat(alice, bob)
+	alice_session, bob_session, err := sigmachat.EstablishSecureChat(alice, bob)
 	if err != nil {
 		fmt.Printf("should not return an error, but returned %v\n", err)
 	}

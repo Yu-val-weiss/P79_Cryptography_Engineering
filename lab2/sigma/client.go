@@ -3,6 +3,7 @@ package sigma
 import (
 	"crypto/ed25519"
 	"fmt"
+	"strings"
 
 	certauth "github.com/yu-val-weiss/p79_cryptography_engineering/lab2/cert_auth"
 )
@@ -55,6 +56,11 @@ func NewBaseClient(name string) *baseClient {
 	return &baseClient{name: name, public: pub, private: priv}
 }
 
+// return the name of the client
+func (c *baseClient) Name() string {
+	return strings.Clone(c.name) // defensive clone
+}
+
 // Register a client with a certificate authority, ca must not be nil, will panic if so.
 //
 // Returns [registeredClient], a promoted type that guarantees that the client is registered to the given [certauth.CertificateAuthority]
@@ -76,6 +82,22 @@ func (c *baseClient) Register(ca certauth.CertificateAuthority) (*registeredClie
 		ca:         ca,
 		cert:       cert,
 	}, nil
+}
+
+// internal interface that allows for implementation of [CheckCAMatch]
+type regclient interface {
+	getCA() certauth.CertificateAuthority
+}
+
+// implement [regclient] interface for CheckCAMatch
+//
+// [initiatorClient] and [challengerClient] automatically implement this due to the struct embedding
+func (c *registeredClient) getCA() certauth.CertificateAuthority {
+	return c.ca
+}
+
+func CheckCAMatch[T1 regclient, T2 regclient](c1 T1, c2 T2) bool {
+	return c1.getCA() == c2.getCA()
 }
 
 // convenience function for getting a [certauth.ValidatedCertificate] from the registered certificate authority
@@ -150,6 +172,8 @@ func (s *completedState) isInitiatorState() {}
 
 func (s *completedState) isChallengerState() {}
 
+type InitiatorClient = *initiatorClient
+
 // initiatorClient represents the SIGMA protocol initiator (Alice)
 type initiatorClient struct {
 	*registeredClient
@@ -157,7 +181,7 @@ type initiatorClient struct {
 }
 
 // AsInitiator promotes a [registeredClient] to an [initiatorClient]
-func (c *registeredClient) AsInitiator() *initiatorClient {
+func (c *registeredClient) AsInitiator() InitiatorClient {
 	return &initiatorClient{
 		registeredClient: c,
 		state:            &initiatorBaseState{},
@@ -186,8 +210,10 @@ type challengerClient struct {
 	state challengerState
 }
 
+type ChallengerClient = *challengerClient
+
 // AsChallenger promotes a [registeredClient] to a [challengerClient]
-func (c *registeredClient) AsChallenger() *challengerClient {
+func (c *registeredClient) AsChallenger() ChallengerClient {
 	return &challengerClient{
 		registeredClient: c,
 		state:            &challengerBaseState{},

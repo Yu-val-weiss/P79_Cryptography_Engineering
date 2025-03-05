@@ -1,4 +1,4 @@
-package sigma
+package sigmachat
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	certauth "github.com/yu-val-weiss/p79_cryptography_engineering/lab2/cert_auth"
+	"github.com/yu-val-weiss/p79_cryptography_engineering/lab2/sigma"
 )
 
 func TestMessageToString(t *testing.T) {
@@ -24,11 +25,11 @@ func TestEstablishSecureChat(t *testing.T) {
 			fmt.Sprintf("Run%v", i), func(t *testing.T) {
 				t.Parallel()
 				ca := certauth.NewAuthority()
-				alice_reg, err := NewBaseClient("alice").Register(ca)
+				alice_reg, err := sigma.NewBaseClient("alice").Register(ca)
 				if err != nil {
 					t.Errorf("expected alice registration to succeed, got error %v", err)
 				}
-				bob_reg, err := NewBaseClient("bob").Register(ca)
+				bob_reg, err := sigma.NewBaseClient("bob").Register(ca)
 				if err != nil {
 					t.Errorf("expected bob registration to succeed, got error %v", err)
 				}
@@ -59,11 +60,11 @@ func TestMessageSending(t *testing.T) {
 		t.Run(fmt.Sprintf("SendMessage%v", i), func(t *testing.T) {
 			t.Parallel()
 			ca := certauth.NewAuthority()
-			alice_reg, err := NewBaseClient("alice").Register(ca)
+			alice_reg, err := sigma.NewBaseClient("alice").Register(ca)
 			if err != nil {
 				t.Errorf("expected alice registration to succeed, got error %v", err)
 			}
-			bob_reg, err := NewBaseClient("bob").Register(ca)
+			bob_reg, err := sigma.NewBaseClient("bob").Register(ca)
 			if err != nil {
 				t.Errorf("expected bob registration to succeed, got error %v", err)
 			}
@@ -112,11 +113,11 @@ func TestDecryptInvalidMessage(t *testing.T) {
 func TestEstablishSecureChatErrors(t *testing.T) {
 	ca := certauth.NewAuthority()
 	ca_2 := certauth.NewAuthority()
-	alice_reg, err := NewBaseClient("alice").Register(ca)
+	alice_reg, err := sigma.NewBaseClient("alice").Register(ca)
 	if err != nil {
 		t.Errorf("expected alice registration to succeed, got error %v", err)
 	}
-	bob_reg, err := NewBaseClient("bob").Register(ca_2)
+	bob_reg, err := sigma.NewBaseClient("bob").Register(ca_2)
 	if err != nil {
 		t.Errorf("expected bob registration to succeed, got error %v", err)
 	}

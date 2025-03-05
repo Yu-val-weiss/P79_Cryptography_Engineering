@@ -1,4 +1,4 @@
-package sigma
+package sigmachat
 
 import (
 	"crypto/aes"
@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"time"
+
+	"github.com/yu-val-weiss/p79_cryptography_engineering/lab2/sigma"
 )
 
 // Defines a Message sent with SIGMA-powered chat client
@@ -137,8 +139,8 @@ func (cs *chatSession) ReceiveMessage(data []byte) (Message, error) {
 
 // Sets up a secure chat session, returns each party's chat session and an error if one arises.
 // This essentially simulates a SIGMA exchange
-func EstablishSecureChat(initiator *initiatorClient, challenger *challengerClient) (ChatSession, ChatSession, error) {
-	if initiator.ca != challenger.ca {
+func EstablishSecureChat(initiator sigma.InitiatorClient, challenger sigma.ChallengerClient) (ChatSession, ChatSession, error) {
+	if !sigma.CheckCAMatch(initiator, challenger) {
 		return nil, nil, fmt.Errorf("both clients should be registered with the same authority")
 	}
 	// begin SIGMA protocol
@@ -173,8 +175,8 @@ func EstablishSecureChat(initiator *initiatorClient, challenger *challengerClien
 		return nil, nil, fmt.Errorf("could not get session key from challenger: %v", err)
 	}
 
-	initiatorSession := chatSession{initiator.name, challenger.name, init_key}
-	challengerSession := chatSession{challenger.name, initiator.name, chall_key}
+	initiatorSession := chatSession{initiator.Name(), challenger.Name(), init_key}
+	challengerSession := chatSession{challenger.Name(), initiator.Name(), chall_key}
 
 	return &initiatorSession, &challengerSession, nil
 }
