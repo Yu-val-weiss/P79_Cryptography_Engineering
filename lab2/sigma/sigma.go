@@ -130,7 +130,7 @@ func (a *initiatorClient) Respond(data []byte) ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf("client must be in intermediate InitiatorBegunState to call this method, was in %T", a.state)
 	}
-	challenge, err := unmarshalChallenge(data)
+	challenge, err := unmarshal[challengeMsg](data)
 	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal challenge")
 	}

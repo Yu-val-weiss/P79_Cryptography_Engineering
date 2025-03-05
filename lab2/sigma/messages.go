@@ -27,15 +27,6 @@ func (r challengeMsg) Marshal() []byte {
 	return data
 }
 
-// convert json bytes to [challengeMsg]
-func unmarshalChallenge(data []byte) (challengeMsg, error) {
-	var chall challengeMsg
-	if err := json.Unmarshal(data, &chall); err != nil {
-		return chall, fmt.Errorf("could not unmarshall JSON, error: %v", err)
-	}
-	return chall, nil
-}
-
 // internal struct defining the final response from Alice to Bob for SIGMA protocol
 type responseMsg struct {
 	Certificate certauth.ValidatedCertificate `json:"cert"` // Alice's validated certificate c_a

@@ -186,7 +186,7 @@ func TestSigmaErrors(t *testing.T) {
 	}
 	alice.ca = ca
 
-	chall_msg, _ := unmarshalChallenge(challenge)
+	chall_msg, _ := unmarshal[challengeMsg](challenge)
 	mac := slices.Clone(chall_msg.Mac)
 	chall_msg.Mac[1] -= 1
 	chall_msg.Mac[2] -= 2
