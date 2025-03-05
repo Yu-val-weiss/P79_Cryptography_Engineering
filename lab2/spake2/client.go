@@ -17,7 +17,21 @@ type client struct {
 	state    clientState
 }
 
-// creates a new SPAKE2 client from a given string password
+// Creates a new SPAKE2 client from a given string password
+//
+// Example code, ignoring error handling
+//
+//	a, b := NewClient("password"), NewClient("password")
+//	pi_a, _ := a.InitiateAsAlice()
+//	pi_b, _ := b.InitiateAsBob()
+//	mu_a, _ := a.Derive(pi_b)
+//	mu_b, _ := b.Derive(pi_a)
+//	err_a := a.Validate(mu_b)
+//	err_b := b.Validate(mu_a)
+//	a_k, _ := a.Key() // works if err_a is nil
+//	b_k, _ := b.Key() // works if err_b is nil
+//
+// Proper error handling is achieved by checking that the returned error is nil at each stage
 func NewClient(password string) Client {
 	return &client{
 		password: []byte(password),
