@@ -34,9 +34,9 @@ type registeredClient struct {
 //	alice := NewBaseClient("Alice")
 //	alice.Register(ca)
 //
-// to initiate a SIGMA protocol instance
+// to initiate a SIGMA protocol instance, promote [registeredClient] using [registeredClient.AsInitiator]
 //
-//	alice_i := alice.AsInitator()
+//	alice_i := alice.AsInitiator()
 //	alice_i.Initiate() // send this to another client
 //	alice_i.Respond(received_data) // send returned value to other client, input received from other client
 //	alice_i is now in finalised state, key can be retrieved with alice_i.SessionKey()
@@ -156,7 +156,7 @@ type initiatorClient struct {
 	state initiatorState
 }
 
-// AsInitiator converts a BaseClient to an InitiatorClient
+// AsInitiator promotes a [registeredClient] to an [initiatorClient]
 func (c *registeredClient) AsInitiator() *initiatorClient {
 	return &initiatorClient{
 		registeredClient: c,
@@ -186,7 +186,7 @@ type challengerClient struct {
 	state challengerState
 }
 
-// AsChallenger creates a new instance of a ChallengerClient from a BaseClient.
+// AsChallenger promotes a [registeredClient] to a [challengerClient]
 func (c *registeredClient) AsChallenger() *challengerClient {
 	return &challengerClient{
 		registeredClient: c,
