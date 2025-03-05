@@ -142,22 +142,22 @@ func NewAuthority() CertificateAuthority {
 //
 //	data, _ := ca.Certify("alice")
 //	cert, err := certauth.Unmarshal[Certificate](data)
-func (ca CertificateAuthority) Register(data []byte) []byte {
+func (ca CertificateAuthority) Register(data []byte) ([]byte, error) {
 	req, err := Unmarshal[registerRequest](data)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("could not decode registration request")
 	}
 
 	exist_cert, exists := ca.regcerts[req.Name]
 	if exists && bytes.Equal(exist_cert.PublicKey, req.PublicKey) {
-		return exist_cert.Marshal() // cannot re-register with the same public key, so return existing one
+		return exist_cert.Marshal(), nil // cannot re-register with the same public key, so return existing one
 	}
 	// either doesn't exist or new public key, so create a new certificate
 	cert := NewCertificate(req.Name, req.PublicKey)
 	ca.regcerts[req.Name] = cert
 
 	// return clone of the certificate to prevent modification of the map via the slice
-	return cert.Marshal()
+	return cert.Marshal(), nil
 }
 
 // If there is a certificate registered under the input name, return a byte array encoding a [ValidatedCertificate] signed by the CA

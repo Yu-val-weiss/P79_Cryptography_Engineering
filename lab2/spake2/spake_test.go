@@ -103,3 +103,11 @@ func TestValidateErrorsIfInWrongState(t *testing.T) {
 		t.Errorf("expected error about wrong state, got nil")
 	}
 }
+
+func TestDeriveFailsWithInvalidData(t *testing.T) {
+	a := NewClient("password")
+	a.state = &initiatedState{}
+	if _, err := a.Derive([]byte("invalid")); err == nil {
+		t.Errorf("expected an error about decoding, got nil")
+	}
+}

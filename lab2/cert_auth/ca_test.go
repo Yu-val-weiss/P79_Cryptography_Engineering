@@ -26,8 +26,8 @@ func TestReRegisterWithSamePK(t *testing.T) {
 	ca := NewAuthority()
 	p_k := make(ed25519.PublicKey, 32)
 	req := MakeRegistrationRequest("Alice", p_k)
-	c_1_data := ca.Register(req)
-	c_2_data := ca.Register(req)
+	c_1_data, _ := ca.Register(req)
+	c_2_data, _ := ca.Register(req)
 
 	c_1, err := Unmarshal[Certificate](c_1_data)
 	if err != nil {
@@ -55,6 +55,13 @@ func TestCannotModifyRegisteredCertificate(t *testing.T) {
 	p_k[0] = byte(255)
 	if bytes.Equal(p_k, ca.regcerts["Alice"].PublicKey) {
 		t.Errorf("should not be able to modify public key externally")
+	}
+}
+
+func TestRegisterInvalidData(t *testing.T) {
+	ca := NewAuthority()
+	if _, err := ca.Register([]byte("invalid")); err == nil {
+		t.Errorf("expected error about invalid data, got nil")
 	}
 }
 
@@ -101,7 +108,10 @@ func TestCertifyWithoutRegistering(t *testing.T) {
 
 func TestExpiredCertificate(t *testing.T) {
 	ca := NewAuthority()
-	cert_data := ca.Register(MakeRegistrationRequest("Alice", make(ed25519.PublicKey, 32)))
+	cert_data, err := ca.Register(MakeRegistrationRequest("Alice", make(ed25519.PublicKey, 32)))
+	if err != nil {
+		t.Errorf("expected registration to work, got error %v", err)
+	}
 	cert, err := Unmarshal[Certificate](cert_data)
 	if err != nil {
 		t.Errorf("expected certificate unmarshal to work, got error %v", err)
@@ -138,4 +148,10 @@ func TestVerifyCertificateFails(t *testing.T) {
 	expired_cert := val_cert.Cert.clone()
 	expired_cert.Start = expired_cert.Start.AddDate(0, -5, 0)
 	expired_cert.End = expired_cert.End.AddDate(0, -5, 0)
+}
+
+func TestVerifyReturnsFalseWithInvalidData(t *testing.T) {
+	if ca := NewAuthority(); ca.VerifyCertificate([]byte("invalid")) {
+		t.Errorf("expected verification to return false, but it said it was verified!")
+	}
 }

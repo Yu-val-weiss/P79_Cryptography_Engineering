@@ -24,8 +24,14 @@ func TestEstablishSecureChat(t *testing.T) {
 			fmt.Sprintf("Run%v", i), func(t *testing.T) {
 				t.Parallel()
 				ca := certauth.NewAuthority()
-				alice_reg := NewBaseClient("alice").Register(ca)
-				bob_reg := NewBaseClient("bob").Register(ca)
+				alice_reg, err := NewBaseClient("alice").Register(ca)
+				if err != nil {
+					t.Errorf("expected alice registration to succeed, got error %v", err)
+				}
+				bob_reg, err := NewBaseClient("bob").Register(ca)
+				if err != nil {
+					t.Errorf("expected bob registration to succeed, got error %v", err)
+				}
 				alice := alice_reg.AsInitiator()
 				bob := bob_reg.AsChallenger()
 				in_s, ch_s, err := EstablishSecureChat(alice, bob)
@@ -53,8 +59,14 @@ func TestMessageSending(t *testing.T) {
 		t.Run(fmt.Sprintf("SendMessage%v", i), func(t *testing.T) {
 			t.Parallel()
 			ca := certauth.NewAuthority()
-			alice_reg := NewBaseClient("alice").Register(ca)
-			bob_reg := NewBaseClient("bob").Register(ca)
+			alice_reg, err := NewBaseClient("alice").Register(ca)
+			if err != nil {
+				t.Errorf("expected alice registration to succeed, got error %v", err)
+			}
+			bob_reg, err := NewBaseClient("bob").Register(ca)
+			if err != nil {
+				t.Errorf("expected bob registration to succeed, got error %v", err)
+			}
 			alice := alice_reg.AsInitiator()
 			bob := bob_reg.AsChallenger()
 			alice_session, bob_session, err := EstablishSecureChat(alice, bob)
@@ -100,14 +112,17 @@ func TestDecryptInvalidMessage(t *testing.T) {
 func TestEstablishSecureChatErrors(t *testing.T) {
 	ca := certauth.NewAuthority()
 	ca_2 := certauth.NewAuthority()
-	alice_reg := NewBaseClient("alice").Register(ca)
-	// bob_reg := NewBaseClient("bob").Register(ca)
-	bob_reg_2 := NewBaseClient("bob").Register(ca_2)
+	alice_reg, err := NewBaseClient("alice").Register(ca)
+	if err != nil {
+		t.Errorf("expected alice registration to succeed, got error %v", err)
+	}
+	bob_reg, err := NewBaseClient("bob").Register(ca_2)
+	if err != nil {
+		t.Errorf("expected bob registration to succeed, got error %v", err)
+	}
 	alice := alice_reg.AsInitiator()
-	// bob := bob_reg.AsChallenger()
-	bob_2 := bob_reg_2.AsChallenger()
-	_, _, err := EstablishSecureChat(alice, bob_2)
-	if err == nil {
+	bob := bob_reg.AsChallenger()
+	if _, _, err := EstablishSecureChat(alice, bob); err == nil {
 		t.Errorf("should return an error about incompatible certificate authorities, but returned nil")
 	}
 }

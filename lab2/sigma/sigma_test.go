@@ -9,10 +9,12 @@ import (
 
 func TestCannotCallFromIncorrectInitiatorState(t *testing.T) {
 	ca := certauth.NewAuthority()
-	alice_reg := NewBaseClient("alice").Register(ca)
+	alice_reg, err := NewBaseClient("alice").Register(ca)
+	if err != nil {
+		t.Errorf("expected alice registration to succeed, got error %v", err)
+	}
 	alice := alice_reg.AsInitiator()
-	_, err := alice.Respond([]byte("invalid"))
-	if err == nil {
+	if _, err := alice.Respond([]byte("invalid")); err == nil {
 		t.Errorf("expected error about incorrect state, got nil")
 	} else {
 		t.Logf("correctly got error: %v", err)
@@ -34,10 +36,12 @@ func TestCannotCallFromIncorrectInitiatorState(t *testing.T) {
 
 func TestCannotCallFromIncorrectChallengerState(t *testing.T) {
 	ca := certauth.NewAuthority()
-	bob_reg := NewBaseClient("bob").Register(ca)
+	bob_reg, err := NewBaseClient("bob").Register(ca)
+	if err != nil {
+		t.Errorf("expected alice registration to succeed, got error %v", err)
+	}
 	bob := bob_reg.AsChallenger()
-	err := bob.Finalise([]byte("invalid"))
-	if err == nil {
+	if err := bob.Finalise([]byte("invalid")); err == nil {
 		t.Errorf("expected error about incorrect state, got nil")
 	} else {
 		t.Logf("correctly got error: %v", err)
@@ -59,8 +63,14 @@ func TestCannotCallFromIncorrectChallengerState(t *testing.T) {
 
 func TestManualSigma(t *testing.T) {
 	ca := certauth.NewAuthority()
-	alice_reg := NewBaseClient("alice").Register(ca)
-	bob_reg := NewBaseClient("bob").Register(ca)
+	alice_reg, err := NewBaseClient("alice").Register(ca)
+	if err != nil {
+		t.Errorf("expected alice registration to succeed, got error %v", err)
+	}
+	bob_reg, err := NewBaseClient("bob").Register(ca)
+	if err != nil {
+		t.Errorf("expected bob registration to succeed, got error %v", err)
+	}
 	alice := alice_reg.AsInitiator()
 	bob := bob_reg.AsChallenger()
 
@@ -120,8 +130,14 @@ func TestManualSigma(t *testing.T) {
 func TestSigmaErrors(t *testing.T) {
 
 	ca := certauth.NewAuthority()
-	alice_reg := NewBaseClient("alice").Register(ca)
-	bob_reg := NewBaseClient("bob").Register(ca)
+	alice_reg, err := NewBaseClient("alice").Register(ca)
+	if err != nil {
+		t.Errorf("expected alice registration to succeed, got error %v", err)
+	}
+	bob_reg, err := NewBaseClient("bob").Register(ca)
+	if err != nil {
+		t.Errorf("expected bob registration to succeed, got error %v", err)
+	}
 	alice := alice_reg.AsInitiator()
 	bob := bob_reg.AsChallenger()
 

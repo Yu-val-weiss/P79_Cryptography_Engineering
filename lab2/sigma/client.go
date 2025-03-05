@@ -58,20 +58,24 @@ func NewBaseClient(name string) *baseClient {
 // Register a client with a certificate authority, ca must not be nil, will panic if so.
 //
 // Returns [registeredClient], a promoted type that guarantees that the client is registered to the given [certauth.CertificateAuthority]
-func (c *baseClient) Register(ca certauth.CertificateAuthority) *registeredClient {
+func (c *baseClient) Register(ca certauth.CertificateAuthority) (*registeredClient, error) {
 	if ca == nil {
 		panic("cannot register client to a nil certificate authority")
 	}
 	reg_req := certauth.MakeRegistrationRequest(c.name, c.public)
-	cert, err := certauth.Unmarshal[certauth.Certificate](ca.Register(reg_req))
+	cert_data, err := ca.Register(reg_req)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("could not register client: %v", err)
+	}
+	cert, err := certauth.Unmarshal[certauth.Certificate](cert_data)
+	if err != nil {
+		return nil, fmt.Errorf("could not unmarshal certificate: %v", err)
 	}
 	return &registeredClient{
 		baseClient: c,
 		ca:         ca,
 		cert:       cert,
-	}
+	}, nil
 }
 
 // convenience function for getting a [certauth.ValidatedCertificate] from the registered certificate authority

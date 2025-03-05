@@ -18,7 +18,10 @@ func TestNewBaseClient(t *testing.T) {
 func TestRegisterClient(t *testing.T) {
 	c := NewBaseClient("alice")
 	ca := certauth.NewAuthority()
-	rc := c.Register(ca)
+	rc, err := c.Register(ca)
+	if err != nil {
+		t.Errorf("expected client to register successfully, got error %v", err)
+	}
 	ca_cert_data, _ := ca.Certify("alice")
 	ca_cert, _ := certauth.Unmarshal[certauth.ValidatedCertificate](ca_cert_data)
 	if !bytes.Equal(rc.cert.PublicKey, ca_cert.Cert.PublicKey) {

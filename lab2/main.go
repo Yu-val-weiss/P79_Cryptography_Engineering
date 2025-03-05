@@ -64,8 +64,8 @@ func main() {
 	// _ = spake2.Client{}
 
 	ca = certauth.NewAuthority()
-	alice_reg := sigma.NewBaseClient("alice").Register(ca)
-	bob_reg := sigma.NewBaseClient("bob").Register(ca)
+	alice_reg, _ := sigma.NewBaseClient("alice").Register(ca)
+	bob_reg, _ := sigma.NewBaseClient("bob").Register(ca)
 	alice := alice_reg.AsInitiator()
 	bob := bob_reg.AsChallenger()
 	alice_session, bob_session, err := sigma.EstablishSecureChat(alice, bob)
