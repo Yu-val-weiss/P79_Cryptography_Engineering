@@ -3,6 +3,7 @@ package sigma
 import (
 	"crypto/ed25519"
 	"fmt"
+	"slices"
 	"strings"
 
 	certauth "github.com/yu-val-weiss/p79_cryptography_engineering/lab2/cert_auth"
@@ -194,7 +195,7 @@ func getKeyFromCompletedState(state any) ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf("client is not in completed state")
 	}
-	return s.k_S, nil
+	return slices.Clone(s.k_S), nil // defensive clone
 }
 
 // retrieves session key from an initiator client

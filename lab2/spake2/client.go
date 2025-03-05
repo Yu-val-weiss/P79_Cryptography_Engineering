@@ -2,6 +2,7 @@ package spake2
 
 import (
 	"fmt"
+	"slices"
 
 	"filippo.io/edwards25519"
 )
@@ -45,7 +46,7 @@ func (c *client) Key() ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf("client not in final state, could not return key")
 	}
-	return state.k_e, nil
+	return slices.Clone(state.k_e), nil // defensive clone
 }
 
 // interface for client states
