@@ -6,7 +6,10 @@ import (
 	"filippo.io/edwards25519"
 )
 
-// SPAKE2 client struct
+// SPAKE2 client
+type Client = *client
+
+// internal SPAKE2 client struct
 //
 // unexported so can only create using [NewClient]
 type client struct {
@@ -15,7 +18,7 @@ type client struct {
 }
 
 // creates a new SPAKE2 client from a given string password
-func NewClient(password string) *client {
+func NewClient(password string) Client {
 	return &client{
 		password: []byte(password),
 		state:    &baseState{},
