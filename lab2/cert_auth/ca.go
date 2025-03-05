@@ -61,7 +61,7 @@ func (c1 Certificate) Equal(c2 Certificate) bool {
 // promoted type for when a [Certificate] has been validated and signed by a [CertificateAuthority]
 type ValidatedCertificate struct {
 	Cert Certificate `json:"cert"`
-	Sig  []byte      `json:"sig"` // signature (on marhsalled version of cert)
+	Sig  []byte      `json:"sig"` // signature (on marshalled version of cert)
 }
 
 // wraps [json.Marshal] into a convenient method receiver to convert a [ValidatedCertificate] to bytes
