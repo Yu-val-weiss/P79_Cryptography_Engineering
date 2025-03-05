@@ -8,7 +8,7 @@ import (
 )
 
 // internal interface defining the data structs that are sent to/from the certificate authority
-type message interface{ Marshal() []byte }
+type message interface{ challengeMsg | responseMsg }
 
 // internal struct defining challenge message (Bob -> Alice) for SIGMA protocol
 type challengeMsg struct {
