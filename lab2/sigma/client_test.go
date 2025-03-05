@@ -29,14 +29,10 @@ func TestRegisterClient(t *testing.T) {
 	}
 }
 
-func TestRegisterPanicsWithNilAuthority(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("Expected panic, but did not")
-		}
-	}()
-	c := NewBaseClient("alice")
-	c.Register(nil)
+func TestRegisterErrorsWithNilAuthority(t *testing.T) {
+	if _, err := NewBaseClient("alice").Register(nil); err == nil {
+		t.Errorf("expected error about nil certificate authority, got nil")
+	}
 }
 
 func TestGetKeyFromNonCompletedState(t *testing.T) {

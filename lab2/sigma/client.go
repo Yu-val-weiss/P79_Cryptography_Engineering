@@ -62,12 +62,12 @@ func (c *baseClient) Name() string {
 	return strings.Clone(c.name) // defensive clone
 }
 
-// Register a client with a certificate authority, ca must not be nil, will panic if so.
+// Register a client with a given [certauth.CertificateAuthority], ca must not be nil.
 //
 // Returns [registeredClient], a promoted type that guarantees that the client is registered to the given [certauth.CertificateAuthority]
 func (c *baseClient) Register(ca certauth.CertificateAuthority) (*registeredClient, error) {
 	if ca == nil {
-		panic("cannot register client to a nil certificate authority")
+		return nil, fmt.Errorf("cannot register client to a nil certificate authority")
 	}
 	reg_req := certauth.MakeRegistrationRequest(c.name, c.public)
 	cert_data, err := ca.Register(reg_req)
