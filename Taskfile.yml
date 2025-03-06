@@ -49,6 +49,8 @@ tasks:
         msg: "One or more unit tests are failing, fix before zipping."
       - sh: ls *.pdf
         msg: "Lab report not present, add before zipping."
+      - sh: ls README.md
+        msg: "README not present, add before zipping."
     silent: false
 
   docker-*:
