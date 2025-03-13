@@ -22,10 +22,6 @@ func NewVec(n int) *Vec {
 	return &Vec{result, n}
 }
 
-func (v *Vec) Size() int {
-	return v.size
-}
-
 func (v *Vec) Fill(values []int64) *Vec {
 	if v.size != len(values) {
 		panic(fmt.Sprintf("size mismatch, got vector of size %v and values of size %v", v.size, len(values)))

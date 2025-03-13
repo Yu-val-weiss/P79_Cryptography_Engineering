@@ -24,8 +24,6 @@ func NewMat(rows, cols int) *Mat {
 	return &Mat{mat: result, rows: rows, cols: cols}
 }
 
-func (m *Mat) Dims() (int, int) { return m.rows, m.cols }
-
 func (m1 *Mat) MatMul(m2 *Mat, mod *big.Int) *Mat {
 	// check dimensions, if improper, panic
 	if m1.rows == 0 || m1.cols == 0 || m2.cols == 0 || m1.cols != m2.rows {
