@@ -72,7 +72,7 @@ func (v1 *Vec) Add(v2 *Vec, mod *big.Int) *Vec {
 
 	temp := new(big.Int)
 	for x := range v1.vec {
-		temp.Add(v1.vec[0], v2.vec[0])
+		temp.Add(v1.vec[x], v2.vec[x])
 		result.vec[x].Mod(temp, mod)
 	}
 	return result
@@ -90,7 +90,7 @@ func (v1 *Vec) Sub(v2 *Vec, mod *big.Int) *Vec {
 
 	temp := new(big.Int)
 	for x := range v1.vec {
-		temp.Sub(v1.vec[0], v2.vec[0])
+		temp.Sub(v1.vec[x], v2.vec[x])
 		result.vec[x].Mod(temp, mod)
 	}
 	return result
