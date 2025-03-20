@@ -7,7 +7,7 @@ import (
 )
 
 type Vec struct {
-	vec  []*big.Int
+	data []*big.Int
 	size int
 }
 
@@ -27,7 +27,7 @@ func (v *Vec) Fill(values []int64) *Vec {
 		panic(fmt.Sprintf("size mismatch, got vector of size %v and values of size %v", v.size, len(values)))
 	}
 	for i := range v.size {
-		v.vec[i].SetInt64(values[i])
+		v.data[i].SetInt64(values[i])
 	}
 	return v
 }
@@ -36,12 +36,12 @@ func (v *Vec) Fill(values []int64) *Vec {
 //
 // returns the newly filled vector
 func (v *Vec) FillRandom(max *big.Int) *Vec {
-	for i := range v.vec {
+	for i := range v.data {
 		r, err := rand.Int(rand.Reader, max)
 		if err != nil {
 			panic(err)
 		}
-		v.vec[i].Set(r)
+		v.data[i].Set(r)
 	}
 	return v
 }
@@ -50,11 +50,11 @@ func (v *Vec) FillRandom(max *big.Int) *Vec {
 //
 // returns v
 func (v *Vec) OneHot(index int) *Vec {
-	for x := range v.vec {
+	for x := range v.data {
 		if x == index {
-			v.vec[x].SetInt64(1)
+			v.data[x].SetInt64(1)
 		} else {
-			v.vec[x].SetInt64(0)
+			v.data[x].SetInt64(0)
 		}
 	}
 	return v
@@ -71,9 +71,9 @@ func (v1 *Vec) Add(v2 *Vec, mod *big.Int) *Vec {
 	result := NewVec(v1.size)
 
 	temp := new(big.Int)
-	for x := range v1.vec {
-		temp.Add(v1.vec[x], v2.vec[x])
-		result.vec[x].Mod(temp, mod)
+	for x := range v1.data {
+		temp.Add(v1.data[x], v2.data[x])
+		result.data[x].Mod(temp, mod)
 	}
 	return result
 }
@@ -89,9 +89,9 @@ func (v1 *Vec) Sub(v2 *Vec, mod *big.Int) *Vec {
 	result := NewVec(v1.size)
 
 	temp := new(big.Int)
-	for x := range v1.vec {
-		temp.Sub(v1.vec[x], v2.vec[x])
-		result.vec[x].Mod(temp, mod)
+	for x := range v1.data {
+		temp.Sub(v1.data[x], v2.data[x])
+		result.data[x].Mod(temp, mod)
 	}
 	return result
 }
@@ -99,9 +99,9 @@ func (v1 *Vec) Sub(v2 *Vec, mod *big.Int) *Vec {
 func (v *Vec) Scale(value *big.Int, mod *big.Int) *Vec {
 	result := NewVec(v.size)
 	temp := new(big.Int)
-	for i := range v.vec {
-		temp.Mul(v.vec[i], value)
-		result.vec[i].Mod(temp, mod)
+	for i := range v.data {
+		temp.Mul(v.data[i], value)
+		result.data[i].Mod(temp, mod)
 	}
 	return result
 }

@@ -11,7 +11,7 @@ func TestNewVec(t *testing.T) {
 		if v.size != 5 {
 			t.Errorf("NewVec(5).Size() = %v, want 5", v.size)
 		}
-		for i, val := range v.vec {
+		for i, val := range v.data {
 			if val.Int64() != 0 {
 				t.Errorf("NewVec(5).vec[%v] = %v, want 0", i, val)
 			}
@@ -33,7 +33,7 @@ func TestFill(t *testing.T) {
 		v := NewVec(3)
 		values := []int64{1, 2, 3}
 		v.Fill(values)
-		for i, val := range v.vec {
+		for i, val := range v.data {
 			if val.Int64() != values[i] {
 				t.Errorf("Fill() index %v = %v, want %v", i, val, values[i])
 			}
@@ -56,7 +56,7 @@ func TestFillRandom(t *testing.T) {
 	v := NewVec(1000)
 	v.FillRandom(max)
 
-	for i, val := range v.vec {
+	for i, val := range v.data {
 		if val.Cmp(max) >= 0 || val.Sign() < 0 {
 			t.Errorf("FillRandom() index %v = %v, want value in [0,%v)", i, val, max)
 		}
@@ -69,7 +69,7 @@ func TestOneHot(t *testing.T) {
 		v := NewVec(size)
 		v.OneHot(idx)
 
-		for i, val := range v.vec {
+		for i, val := range v.data {
 			expected := int64(0)
 			if i == idx {
 				expected = 1
@@ -90,7 +90,7 @@ func TestAdd(t *testing.T) {
 		result := v1.Add(v2, mod)
 		expected := []int64{5, 7, 9}
 
-		for i, val := range result.vec {
+		for i, val := range result.data {
 			if val.Int64() != expected[i] {
 				t.Errorf("Add() index %v = %v, want %v", i, val, expected[i])
 			}
@@ -105,7 +105,7 @@ func TestAdd(t *testing.T) {
 		result := v1.Add(v2, mod)
 		expected := []int64{2, 4} // (7+5)%10=2, (8+6)%10=4
 
-		for i, val := range result.vec {
+		for i, val := range result.data {
 			if val.Int64() != expected[i] {
 				t.Errorf("Add() with mod index %v = %v, want %v", i, val, expected[i])
 			}
@@ -122,7 +122,7 @@ func TestSub(t *testing.T) {
 		result := v1.Sub(v2, mod)
 		expected := []int64{3, 3, 3}
 
-		for i, val := range result.vec {
+		for i, val := range result.data {
 			if val.Int64() != expected[i] {
 				t.Errorf("Sub() index %v = %v, want %v", i, val, expected[i])
 			}
@@ -137,7 +137,7 @@ func TestSub(t *testing.T) {
 		result := v1.Sub(v2, mod)
 		expected := []int64{7, 6} // (2-5)%10=7, (3-7)%10=6
 
-		for i, val := range result.vec {
+		for i, val := range result.data {
 			if val.Int64() != expected[i] {
 				t.Errorf("Sub() with mod index %v = %v, want %v", i, val, expected[i])
 			}
@@ -154,7 +154,7 @@ func TestScale(t *testing.T) {
 		result := v.Scale(scale, mod)
 		expected := []int64{2, 4, 6}
 
-		for i, val := range result.vec {
+		for i, val := range result.data {
 			if val.Int64() != expected[i] {
 				t.Errorf("Scale() index %v = %v, want %v", i, val, expected[i])
 			}
@@ -169,7 +169,7 @@ func TestScale(t *testing.T) {
 		result := v.Scale(scale, mod)
 		expected := []int64{2, 5, 8} // (4*3)%10=2, (5*3)%10=5, (6*3)%10=8
 
-		for i, val := range result.vec {
+		for i, val := range result.data {
 			if val.Int64() != expected[i] {
 				t.Errorf("Scale() with mod index %v = %v, want %v", i, val, expected[i])
 			}

@@ -6,7 +6,7 @@ import (
 )
 
 type Mat struct {
-	mat        [][]*big.Int
+	data       [][]*big.Int
 	rows, cols int
 }
 
@@ -21,7 +21,7 @@ func NewMat(rows, cols int) *Mat {
 			result[row][col] = big.NewInt(0)
 		}
 	}
-	return &Mat{mat: result, rows: rows, cols: cols}
+	return &Mat{data: result, rows: rows, cols: cols}
 }
 
 func (m1 *Mat) MatMul(m2 *Mat, mod *big.Int) *Mat {
@@ -42,7 +42,7 @@ func (m1 *Mat) MatMul(m2 *Mat, mod *big.Int) *Mat {
 			sum := big.NewInt(0)
 			for k := range inner {
 				// multiply elements, store in temp
-				temp.Mul(m1.mat[i][k], m2.mat[k][j])
+				temp.Mul(m1.data[i][k], m2.data[k][j])
 				// take modulus, store in temp
 				temp.Mod(temp, mod)
 				// add temp to sum
@@ -51,7 +51,7 @@ func (m1 *Mat) MatMul(m2 *Mat, mod *big.Int) *Mat {
 				sum.Mod(sum, mod)
 			}
 			// put sum in array
-			result.mat[i][j].Set(sum)
+			result.data[i][j].Set(sum)
 		}
 	}
 	return result
@@ -73,7 +73,7 @@ func (m *Mat) VecMul(v *Vec, mod *big.Int) *Vec {
 		sum := big.NewInt(0)
 		for j := range v.size {
 			// multiply elements, store in temp
-			temp.Mul(m.mat[i][j], v.vec[j])
+			temp.Mul(m.data[i][j], v.data[j])
 			// take modulus, store in temp
 			temp.Mod(temp, mod)
 			// add temp to sum
@@ -82,7 +82,7 @@ func (m *Mat) VecMul(v *Vec, mod *big.Int) *Vec {
 			sum.Mod(sum, mod)
 
 			// put sum in vector
-			result.vec[i].Set(sum)
+			result.data[i].Set(sum)
 		}
 	}
 	return result
@@ -101,7 +101,7 @@ func (m *Mat) Fill(data []int64) *Mat {
 	}
 	for i := range m.rows {
 		for j := range m.cols {
-			m.mat[i][j].SetInt64(data[i*m.cols+j])
+			m.data[i][j].SetInt64(data[i*m.cols+j])
 		}
 	}
 	return m

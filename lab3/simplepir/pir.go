@@ -41,7 +41,7 @@ func Query(i, j int, A *Mat, sqrtN int, q *big.Int, sampler Sampler) (queryState
 	s := NewVec(sqrtN).FillRandom(q)
 	e_vals := make([]int64, sqrtN)
 	for i := range sqrtN {
-		e_vals[i] = int64(chi.Sample())
+		e_vals[i] = int64(sampler.Sample())
 	}
 	e := NewVec(sqrtN).Fill(e_vals)
 	q_over_2 := new(big.Int).Div(q, big.NewInt(2))
@@ -71,6 +71,6 @@ func Recover(ans *Vec, st queryState, hintC *Mat, q *big.Int) bool {
 	q_over_4 := new(big.Int).Div(q, big.NewInt(4))
 	q_over_4_times_3 := new(big.Int).Mul(q_over_4, big.NewInt(3))
 
-	ind := r.vec[st.j]
+	ind := r.data[st.j]
 	return ind.Cmp(q_over_4) >= 0 && ind.Cmp(q_over_4_times_3) <= 0
 }
