@@ -1,6 +1,7 @@
 package simplepir
 
 import (
+	"crypto/rand"
 	"fmt"
 	"math/big"
 )
@@ -102,6 +103,22 @@ func (m *Mat) Fill(data []int64) *Mat {
 	for i := range m.rows {
 		for j := range m.cols {
 			m.data[i][j].SetInt64(data[i*m.cols+j])
+		}
+	}
+	return m
+}
+
+// fills the matrix with random [*big.Int]s in the range [0,max)
+//
+// returns the newly filled matrix
+func (m *Mat) FillRandom(max *big.Int) *Mat {
+	for i := range m.rows {
+		for j := range m.cols {
+			r, err := rand.Int(rand.Reader, max)
+			if err != nil {
+				panic(err)
+			}
+			m.data[i][j].Set(r)
 		}
 	}
 	return m

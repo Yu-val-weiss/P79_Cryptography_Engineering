@@ -32,7 +32,7 @@ func (v *Vec) Fill(values []int64) *Vec {
 	return v
 }
 
-// fills the vector with random values in the range [0,max)
+// fills the vector with random [*big.Int]s in the range [0,max)
 //
 // returns the newly filled vector
 func (v *Vec) FillRandom(max *big.Int) *Vec {
