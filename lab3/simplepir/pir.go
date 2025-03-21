@@ -66,11 +66,15 @@ func Answer(db *Mat, qu *Vec, q *big.Int) *Vec {
 // additional inputs: the state st (comprising j and s from [Query]), hintC aka A' and the modulus q.
 //
 // returns the bit value inside the database (i.e. true for 1 and false for 0)
-func Recover(ans *Vec, st queryState, hintC *Mat, q *big.Int) bool {
+func Recover(ans *Vec, st queryState, hintC *Mat, q *big.Int) byte {
 	r := ans.Sub(hintC.VecMul(st.s, q), q)
 	q_over_4 := new(big.Int).Div(q, big.NewInt(4))
 	q_over_4_times_3 := new(big.Int).Mul(q_over_4, big.NewInt(3))
 
 	ind := r.data[st.j]
-	return ind.Cmp(q_over_4) >= 0 && ind.Cmp(q_over_4_times_3) <= 0
+	if ind.Cmp(q_over_4) >= 0 && ind.Cmp(q_over_4_times_3) <= 0 {
+		return 1
+	} else {
+		return 0
+	}
 }
