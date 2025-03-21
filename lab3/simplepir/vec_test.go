@@ -65,7 +65,7 @@ func TestFillRandom(t *testing.T) {
 
 func TestOneHot(t *testing.T) {
 	size := 5
-	for idx := 0; idx < size; idx++ {
+	for idx := range size {
 		v := NewVec(size)
 		v.OneHot(idx)
 
