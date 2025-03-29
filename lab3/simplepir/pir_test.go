@@ -25,7 +25,7 @@ func TestSetup(t *testing.T) {
 			db := NewMat(tc.dbRows, tc.dbCols).FillRandom(mod)
 			A := NewMat(tc.dbCols, tc.dbCols).FillRandom(mod)
 
-			hintC := Setup(db, A, mod)
+			hintC := pirSetup(db, A, mod)
 
 			// Verify hintC = db * A
 			expected := db.MatMul(A, mod)
@@ -68,7 +68,7 @@ func TestQuery(t *testing.T) {
 				t.Fatalf("Invalid index values: i=%d, j=%d for sqrtN=%d", tc.i, tc.j, tc.sqrtN)
 			}
 
-			st, qu := Query(tc.i, tc.j, A, tc.sqrtN, q, sampler)
+			st, qu := pirQuery(tc.i, tc.j, A, tc.sqrtN, q, sampler)
 
 			// Basic checks
 			if qu == nil {
@@ -116,7 +116,7 @@ func TestAnswer(t *testing.T) {
 			db := NewMat(tc.dbRows, tc.dbCols).FillRandom(mod)
 			qu := NewVec(tc.dbCols).FillRandom(mod)
 
-			ans := Answer(db, qu, mod)
+			ans := pirAnswer(db, qu, mod)
 
 			// Basic check
 			if ans == nil {
@@ -175,20 +175,20 @@ func TestFullProtocol(t *testing.T) {
 
 			// Initialise scheme
 			A := NewMat(tc.sqrtN, tc.sqrtN).FillRandom(mod)
-			hintC := Setup(db, A, mod)
+			hintC := pirSetup(db, A, mod)
 
 			// Test multiple positions
 			for i := range tc.sqrtN {
 				for j := range tc.sqrtN {
 					t.Run(fmt.Sprintf("Position_%d_%d", i, j), func(t *testing.T) {
 						// Create query
-						st, qu := Query(i, j, A, tc.sqrtN, mod, chi)
+						st, qu := pirQuery(i, j, A, tc.sqrtN, mod, chi)
 
 						// Generate answer
-						ans := Answer(db, qu, mod)
+						ans := pirAnswer(db, qu, mod)
 
 						// Recover the result
-						result := Recover(ans, st, hintC, mod)
+						result := pirRecover(ans, st, hintC, mod)
 
 						// Verify result
 						expected := byte(db.data[i][j].Bit(0))
@@ -240,28 +240,28 @@ func TestRecover(t *testing.T) {
 		}
 
 		// Pre-compute the hint once
-		hintC := Setup(db, A, mod)
+		hintC := pirSetup(db, A, mod)
 
 		// Test a single element first to debug
 		i, j := 1, 2 // Choose coordinates where we know the value
 		expected := byte(db.data[i][j].Bit(0))
 
 		// Go through the full protocol with detailed logging
-		st, qu := Query(i, j, A, sqrtN, mod, sampler)
+		st, qu := pirQuery(i, j, A, sqrtN, mod, sampler)
 
 		// Verify the state has correct j value
 		if st.j != j {
 			t.Errorf("Query state has incorrect j value: expected %d, got %d", j, st.j)
 		}
 
-		ans := Answer(db, qu, mod)
+		ans := pirAnswer(db, qu, mod)
 
 		// Print intermediate values for debugging
 		t.Logf("Testing recovery for position (%d,%d), expected value: %d", i, j, expected)
 		t.Logf("hintC dimensions: %dx%d", hintC.rows, hintC.cols)
 		t.Logf("answer vector size: %d", ans.size)
 
-		result := Recover(ans, st, hintC, mod)
+		result := pirRecover(ans, st, hintC, mod)
 
 		if result != expected {
 			t.Errorf("Recovery failed at (%d,%d): got %v, expected %v", i, j, result, expected)
@@ -287,7 +287,7 @@ func TestRecover(t *testing.T) {
 			}
 		}
 
-		hintC := Setup(db, A, mod)
+		hintC := pirSetup(db, A, mod)
 
 		// Test a few random positions
 		testPositions := []struct{ i, j int }{
@@ -302,9 +302,9 @@ func TestRecover(t *testing.T) {
 			i, j := pos.i, pos.j
 			expected := byte(db.data[i][j].Bit(0))
 
-			st, qu := Query(i, j, A, sqrtN, mod, sampler)
-			ans := Answer(db, qu, mod)
-			result := Recover(ans, st, hintC, mod)
+			st, qu := pirQuery(i, j, A, sqrtN, mod, sampler)
+			ans := pirAnswer(db, qu, mod)
+			result := pirRecover(ans, st, hintC, mod)
 
 			if result != expected {
 				t.Errorf("Recovery failed at (%d,%d): got %v, expected %v", i, j, result, expected)
@@ -331,13 +331,13 @@ func TestEdgeCases(t *testing.T) {
 			}
 
 			A := NewMat(sqrtN, sqrtN).FillRandom(mod)
-			hintC := Setup(db, A, mod)
+			hintC := pirSetup(db, A, mod)
 
 			// Test a few positions
 			for _, idx := range []int{0, sqrtN / 2, sqrtN - 1} {
-				st, qu := Query(idx, idx, A, sqrtN, mod, chi)
-				ans := Answer(db, qu, mod)
-				result := Recover(ans, st, hintC, mod)
+				st, qu := pirQuery(idx, idx, A, sqrtN, mod, chi)
+				ans := pirAnswer(db, qu, mod)
+				result := pirRecover(ans, st, hintC, mod)
 
 				expected := byte(0)
 				if result != expected {
@@ -360,13 +360,13 @@ func TestEdgeCases(t *testing.T) {
 			}
 
 			A := NewMat(sqrtN, sqrtN).FillRandom(mod)
-			hintC := Setup(db, A, mod)
+			hintC := pirSetup(db, A, mod)
 
 			// Test a few positions
 			for _, idx := range []int{0, sqrtN / 2, sqrtN - 1} {
-				st, qu := Query(idx, idx, A, sqrtN, mod, chi)
-				ans := Answer(db, qu, mod)
-				result := Recover(ans, st, hintC, mod)
+				st, qu := pirQuery(idx, idx, A, sqrtN, mod, chi)
+				ans := pirAnswer(db, qu, mod)
+				result := pirRecover(ans, st, hintC, mod)
 
 				expected := byte(1)
 				if result != expected {
