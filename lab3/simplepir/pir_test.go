@@ -50,11 +50,11 @@ func TestQuery(t *testing.T) {
 		i       int
 		j       int
 	}{
-		{"Small Database", 4, 23, 1, 2},
-		{"Medium Database", 16, 97, 5, 10},
-		{"Large Database", 32, 257, 15, 20},
-		{"Corner Case - First Element", 8, 101, 0, 0},
-		{"Corner Case - Last Element", 8, 101, 7, 7},
+		{"Small database", 4, 23, 1, 2},
+		{"Medium database", 16, 97, 5, 10},
+		{"Large database", 32, 257, 15, 20},
+		{"Edge case - first element", 8, 101, 0, 0},
+		{"Edge case - last element", 8, 101, 7, 7},
 	}
 
 	for _, tc := range testCases {
