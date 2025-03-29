@@ -173,7 +173,7 @@ func TestFullProtocol(t *testing.T) {
 				}
 			}
 
-			// Initialize scheme
+			// Initialise scheme
 			A := NewMat(tc.sqrtN, tc.sqrtN).FillRandom(mod)
 			hintC := Setup(db, A, mod)
 
@@ -226,13 +226,13 @@ func TestRecover(t *testing.T) {
 			}
 		}
 
-		// Initialize a deterministic matrix A instead of random
+		// Initialise a deterministic matrix A instead of random
+		// set to the identitity matrix
 		A := NewMat(sqrtN, sqrtN)
 		for i := range sqrtN {
 			for j := range sqrtN {
-				// Simple initialization to ensure A is invertible
 				if i == j {
-					A.data[i][j] = big.NewInt(1) // Identity matrix
+					A.data[i][j] = big.NewInt(1)
 				} else {
 					A.data[i][j] = big.NewInt(0)
 				}

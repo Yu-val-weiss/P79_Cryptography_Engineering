@@ -17,7 +17,7 @@ var chi GaussSampler = GaussSampler{t: t, sigma: sigma, tau: tau}
 //
 // Corresponds to Setup(db ∈ Z^{√𝑁×√𝑁}_p) -> (hintS,hintC)
 //
-// hintS seems unused, so it is omitted here
+// hintS seems unused, and does not correspond to anything in the slides, so it is omitted here
 //
 // In the slides hintC is called A'
 //
