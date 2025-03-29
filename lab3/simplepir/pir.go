@@ -8,7 +8,7 @@ import (
 const (
 	t     float64 = 0
 	sigma float64 = 6.4
-	tau   float64 = 18.4 // past this in un-tail trimmed version, the prob < 0.01
+	tau   float64 = 28.27 // chosen s.t. for continuous version, values of probability in range (-28.27, 28.27) = 1 - 10^-5
 )
 
 var chi GaussSampler = GaussSampler{t: t, sigma: sigma, tau: tau}
