@@ -14,9 +14,9 @@ func TestSetup(t *testing.T) {
 		dbCols  int
 		modulus int64
 	}{
-		{"Small Database", 4, 4, 23},
-		{"Medium Database", 16, 16, 97},
-		{"Large Database", 32, 32, 257},
+		{"Small database", 4, 4, 23},
+		{"Medium database", 16, 16, 97},
+		{"Large database", 32, 32, 257},
 	}
 
 	for _, tc := range testCases {
@@ -105,9 +105,9 @@ func TestAnswer(t *testing.T) {
 		dbCols  int
 		modulus int64
 	}{
-		{"Small Database", 4, 4, 23},
-		{"Medium Database", 16, 16, 97},
-		{"Large Database", 32, 32, 257},
+		{"Small database", 4, 4, 23},
+		{"Medium database", 16, 16, 97},
+		{"Large database", 32, 32, 257},
 	}
 
 	for _, tc := range testCases {
@@ -151,9 +151,9 @@ func TestFullProtocol(t *testing.T) {
 		modulus int64
 		bits    int
 	}{
-		{"Small Database", 4, 1 << 10, 1},
-		{"Medium Database", 16, 1 << 16, 1},
-		{"Large Database", 32, 1 << 20, 1},
+		{"Small database", 4, 1 << 10, 1},
+		{"Medium database", 16, 1 << 16, 1},
+		{"Large database", 32, 1 << 20, 1},
 	}
 
 	for _, tc := range testCases {
